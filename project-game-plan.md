@@ -174,12 +174,12 @@ Manual steps by the user:
 
 | Phase | Status | Commit |
 |---|---|---|
-| 0 — Bootstrap | not started | — |
-| 1 — Parser | not started | — |
-| 2 — File I/O | not started | — |
-| 3 — Display | not started | — |
-| 4 — Runner editing | not started | — |
-| 5 — Split editing | not started | — |
-| 6 — Class/event editing | not started | — |
-| 7 — UX polish | not started | — |
-| 8 — CI/CD | not started | — |
+| 0 — Bootstrap | done | feat(parser): add IOF XML 3.0 round-trip parser |
+| 1 — Parser | done | feat(parser): add IOF XML 3.0 round-trip parser |
+| 2 — File I/O | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 3 — Display | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 4 — Runner editing | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 5 — Split editing | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 6 — Class/event editing | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 7 — UX polish | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
+| 8 — CI/CD | done | feat(app): full SvelteKit SPA with editing, UX polish, and CI |
