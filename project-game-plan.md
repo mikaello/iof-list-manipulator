@@ -1,6 +1,6 @@
 ## Working conventions
 
-- **Run `npm test` and `npm run lint` after every meaningful change.** Don't
+- **Run `npm test`, `npm run check` and `npm run lint` after every meaningful change.** Don't
   let failures accumulate.
 - **Commit after each phase and after each numbered subphase** where it makes
   sense as a standalone change.
