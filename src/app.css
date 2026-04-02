@@ -21,10 +21,14 @@ dialog::backdrop {
   outline-offset: 2px;
 }
 
-/* All buttons: pointer cursor + subtle active press */
+/* All buttons: pointer cursor + subtle active press + universal hover feedback */
 button {
   cursor: pointer;
 }
+button:not(:disabled):hover {
+  filter: brightness(0.92);
+}
 button:active:not(:disabled) {
   transform: translateY(1px);
+  filter: brightness(0.88);
 }
