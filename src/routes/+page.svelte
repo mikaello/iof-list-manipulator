@@ -40,11 +40,11 @@
 	<title>{rl ? `${rl.event.name}${appState.isDirty ? ' *' : ''} — IOF Editor` : 'IOF Editor'}</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gray-50 text-gray-900 dark:bg-slate-950 dark:text-gray-100">
+<div class="min-h-screen bg-gradient-to-b from-slate-50 via-white to-indigo-50/40 text-gray-900 dark:from-slate-950 dark:via-slate-950 dark:to-indigo-950/20 dark:text-gray-100">
 
 	<!-- Navbar — always visible -->
 	<header class="sticky top-0 z-20 bg-slate-900 shadow-sm">
-		<div class="mx-auto flex h-13 max-w-[1400px] items-center gap-2 px-6 py-2">
+		<div class="mx-auto flex h-13 max-w-[1480px] items-center gap-2 px-6 py-2">
 			<!-- Brand -->
 			<span class="mr-3 select-none text-sm font-bold tracking-tight">
 				<span class="text-indigo-400">IOF</span><span class="text-slate-100"> Editor</span>
@@ -106,7 +106,7 @@
 	</header>
 
 	<!-- Main content -->
-	<main class="mx-auto max-w-[1400px] px-6 py-8" id="main-content">
+	<main class="mx-auto max-w-[1480px] px-6 py-10" id="main-content">
 
 		<!-- Error banner -->
 		{#if error}
@@ -127,15 +127,15 @@
 		{#if !rl}
 			<!-- Landing / empty state — single upload point -->
 			<div class="flex flex-col items-center justify-center py-20 text-center">
-				<div class="mb-8 rounded-2xl bg-indigo-600/10 p-5 dark:bg-indigo-500/10">
+				<div class="mb-8 rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-500/15 to-sky-400/15 p-6 shadow-sm dark:border-indigo-900/50 dark:from-indigo-500/20 dark:to-sky-500/20">
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-14 w-14 text-indigo-500 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" aria-hidden="true">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 					</svg>
 				</div>
 				<h1 class="mb-2 text-2xl font-bold text-gray-800 dark:text-gray-100">IOF Result List Editor</h1>
-				<p class="mb-8 max-w-sm text-gray-500 dark:text-gray-400">
-					Edit orienteering result lists in IOF XML 3.0 format directly in your browser.
-					No server, no uploads — everything stays on your device.
+				<p class="mb-8 max-w-md text-gray-500 dark:text-gray-400">
+					Edit IOF XML 3.0 result lists for orienteering events directly in your browser.
+					No uploads: parsing and editing stay on your device.
 				</p>
 				<FileLoader variant="landing" />
 			</div>
