@@ -4,9 +4,11 @@
 	import ExportButton from '$lib/components/ExportButton.svelte';
 	import EventHeader from '$lib/components/EventHeader.svelte';
 	import ClassResultPanel from '$lib/components/ClassResultPanel.svelte';
+	import ChangelogDialog from '$lib/components/ChangelogDialog.svelte';
 
 	const rl = $derived(appState.resultList);
 	const error = $derived(appState.parseError);
+	let changelogOpen = $state(false);
 
 	function addClass() {
 		if (!rl) return;
@@ -80,6 +82,25 @@
 				>
 					↪
 				</button>
+
+				<div class="mx-1 h-5 w-px bg-slate-700" role="separator" aria-hidden="true"></div>
+
+				<button
+					type="button"
+					onclick={() => (changelogOpen = true)}
+					title="Change history"
+					aria-label="Show change history"
+					class="relative rounded px-2 py-1.5 text-sm text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+					{#if appState.changeLog.length > 0}
+						<span class="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-indigo-500 text-[9px] font-bold text-white">
+							{appState.changeLog.length > 9 ? '9+' : appState.changeLog.length}
+						</span>
+					{/if}
+				</button>
 			{/if}
 		</div>
 	</header>
@@ -136,3 +157,5 @@
 		{/if}
 	</main>
 </div>
+
+<ChangelogDialog bind:open={changelogOpen} />
