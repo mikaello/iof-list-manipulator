@@ -31,8 +31,20 @@ npm run build    # build static site to build/
 
 ## Hosting
 
-The `build/` output is plain static files.
-Deploy to any static host: Cloudflare Pages, Vercel, Netlify, GitHub Pages, etc.
+The `build/` output is plain static files and can be deployed to any static host.
+
+### GitHub Pages (default CI)
+
+Pushing to `main` / `master` triggers the deploy workflow automatically.
+The workflow uses `actions/configure-pages` to detect the correct base path
+(e.g. `/iof-list-manipulator`) and passes it to the build via the `BASE_PATH`
+environment variable.
+
+One-time setup in the repository settings:
+1. **Settings → Pages → Source**: select **GitHub Actions**.
+2. No secrets are required — the built-in `GITHUB_TOKEN` is sufficient.
+
+The live URL will be `https://<org-or-user>.github.io/iof-list-manipulator/`.
 
 ## IOF XML Standard
 

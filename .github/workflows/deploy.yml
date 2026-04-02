@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -6,13 +6,20 @@ on:
       - main
       - master
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
+# Required for the deploy-pages action
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
+# Only one deployment at a time; cancel any in-progress run
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -21,17 +28,29 @@ jobs:
           node-version: 20
           cache: npm
 
+      # Detects the repo base path (e.g. /iof-list-manipulator) automatically
+      - uses: actions/configure-pages@v5
+        id: pages
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+      - uses: actions/upload-pages-artifact@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: iof-list-manipulator
-          directory: build
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          path: build/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
