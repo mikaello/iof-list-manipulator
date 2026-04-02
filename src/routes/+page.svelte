@@ -42,7 +42,7 @@
 
 	<!-- Navbar — always visible -->
 	<header class="sticky top-0 z-20 bg-slate-900 shadow-sm">
-		<div class="mx-auto flex h-13 max-w-6xl items-center gap-2 px-4 py-2">
+		<div class="mx-auto flex h-13 max-w-[1400px] items-center gap-2 px-6 py-2">
 			<!-- Brand -->
 			<span class="mr-3 select-none text-sm font-bold tracking-tight">
 				<span class="text-indigo-400">IOF</span><span class="text-slate-100"> Editor</span>
@@ -85,7 +85,7 @@
 	</header>
 
 	<!-- Main content -->
-	<main class="mx-auto max-w-6xl px-4 py-8" id="main-content">
+	<main class="mx-auto max-w-[1400px] px-6 py-8" id="main-content">
 
 		<!-- Error banner -->
 		{#if error}
