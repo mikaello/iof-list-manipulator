@@ -174,7 +174,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each splitTimes as st, i}
+						{#each splitTimes as st, i (i)}
 							<tr class="group border-b border-gray-100 dark:border-slate-800">
 							<td class="py-3 pr-6 text-gray-400 dark:text-slate-600">{i + 1}</td>
 							<td class="py-3 pr-6">

@@ -75,7 +75,7 @@
 				</div>
 			{:else}
 				<ol class="space-y-3">
-					{#each entries as entry, i}
+					{#each entries as entry, i (i)}
 						<li
 							class="flex items-start gap-4 rounded-xl border-l-4 bg-gray-50 px-5 py-4 dark:bg-slate-800/60
 								{i === 0 ? 'ring-1 ring-inset ring-indigo-200 dark:ring-indigo-700/60' : ''}
