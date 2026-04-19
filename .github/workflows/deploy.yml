@@ -29,7 +29,7 @@ jobs:
           cache: npm
 
       # Detects the repo base path (e.g. /iof-list-manipulator) automatically
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         id: pages
 
       - name: Install dependencies
