@@ -1,11 +1,12 @@
 // Global application state using Svelte 5 runes
+import { SvelteDate } from 'svelte/reactivity';
 import type { ResultList } from '$lib/iof/types.js';
 
 const MAX_HISTORY = 50;
 
 // ── Changelog entry ────────────────────────────────────────────────────────
 export interface HistoryEntry {
-	time: Date;
+	time: SvelteDate;
 	label: string;
 	/** 'load' | 'edit' | 'undo' | 'redo' | 'clear' */
 	kind: 'load' | 'edit' | 'undo' | 'redo' | 'clear';
@@ -121,7 +122,7 @@ export const appState = (() => {
 	let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
 
 	function addLog(label: string, kind: HistoryEntry['kind']) {
-		changeLog = [...changeLog.slice(-(MAX_HISTORY - 1)), { time: new Date(), label, kind }];
+		changeLog = [...changeLog.slice(-(MAX_HISTORY - 1)), { time: new SvelteDate(), label, kind }];
 	}
 
 	function scheduleSnapshot() {

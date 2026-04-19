@@ -166,7 +166,7 @@
 				}}
 				class="rounded border border-transparent px-1.5 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-slate-600 dark:text-white dark:hover:border-slate-400 {statusBgClass(result.status)}"
 			>
-				{#each ALL_RESULT_STATUSES as s}
+				{#each ALL_RESULT_STATUSES as s (s)}
 					<option value={s}>{statusLabel(s)}</option>
 				{/each}
 			</select>

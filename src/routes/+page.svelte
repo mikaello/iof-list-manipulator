@@ -143,7 +143,7 @@
 			<!-- Result list editor -->
 			<EventHeader event={rl.event} isDirty={appState.isDirty} />
 
-			{#each rl.classResults as cr, i}
+			{#each rl.classResults as cr, i (i)}
 				<ClassResultPanel classResult={cr} classIndex={i} />
 			{/each}
 

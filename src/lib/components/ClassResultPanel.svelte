@@ -202,7 +202,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each cr.personResults as pr, i}
+						{#each cr.personResults as pr, i (i)}
 							<PersonResultRow personResult={pr} {classIndex} resultIndex={i} />
 						{/each}
 					</tbody>
@@ -223,7 +223,7 @@
 	<!-- Team results -->
 	{#if isRelay}
 		<div role="list" aria-label="Teams in class {cr.class.name}">
-			{#each cr.teamResults as tr, i}
+			{#each cr.teamResults as tr, i (i)}
 				<TeamResultPanel teamResult={tr} {classIndex} teamIndex={i} />
 			{/each}
 		</div>
