@@ -1,0 +1,84 @@
+name: PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build preview
+        run: npm run build
+        env:
+          BASE_PATH: /iof-list-manipulator/pr-${{ github.event.pull_request.number }}
+
+      # GitHub Pages serves 404.html for unmatched paths site-wide, so the
+      # root 404.html (production build) would be served instead of the preview.
+      # Adding index.html lets GitHub Pages find the preview as a directory index.
+      - name: Add index.html for subdirectory routing
+        run: cp build/404.html build/index.html
+
+      - name: Deploy preview to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build
+          target-folder: pr-${{ github.event.pull_request.number }}
+          clean: false
+
+      - name: Post preview URL comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            ## 🚀 Preview deployment
+
+            | | |
+            |---|---|
+            | **URL** | https://mikaello.github.io/iof-list-manipulator/pr-${{ github.event.pull_request.number }}/ |
+            | **Commit** | ${{ github.event.pull_request.head.sha }} |
+
+            _Deployed by [PR Preview](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})_
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+
+      - name: Remove preview folder
+        run: |
+          if [ -d "pr-${{ github.event.pull_request.number }}" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -rf pr-${{ github.event.pull_request.number }}/
+            git commit -m "chore: remove preview for PR #${{ github.event.pull_request.number }}"
+            git push
+          fi
+
+      - name: Update comment on PR close
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            Preview deployment removed (PR closed).
