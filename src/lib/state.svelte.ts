@@ -109,6 +109,7 @@ export const appState = (() => {
 	let resultList = $state<ResultList | null>(null);
 	let parseError = $state<string | null>(null);
 	let isDirty = $state(false);
+	let rawXml = $state<string | null>(null);
 
 	// Undo/redo stacks hold serialized snapshots
 	let past = $state<string[]>([]); // [oldest, ..., most recent before current]
@@ -150,6 +151,9 @@ export const appState = (() => {
 		get isDirty() {
 			return isDirty;
 		},
+		get rawXml() {
+			return rawXml;
+		},
 		get canUndo() {
 			return past.length > 0;
 		},
@@ -159,12 +163,13 @@ export const appState = (() => {
 		get changeLog(): HistoryEntry[] {
 			return changeLog;
 		},
-		setResultList(rl: ResultList) {
+		setResultList(rl: ResultList, xml?: string) {
 			resultList = rl;
 			parseError = null;
 			isDirty = false;
 			past = [];
 			future = [];
+			rawXml = xml ?? null;
 			initialSnapshot = JSON.stringify(rl);
 			addLog(`Loaded: ${rl.event.name}`, 'load');
 		},
@@ -172,6 +177,7 @@ export const appState = (() => {
 			parseError = msg;
 			resultList = null;
 			isDirty = false;
+			rawXml = null;
 			past = [];
 			future = [];
 		},
@@ -218,6 +224,7 @@ export const appState = (() => {
 			resultList = null;
 			parseError = null;
 			isDirty = false;
+			rawXml = null;
 			past = [];
 			future = [];
 			changeLog = [];
