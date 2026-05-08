@@ -155,6 +155,15 @@ function serializeTeamResult(doc: Document, tr: TeamResult): Element {
 	return e;
 }
 
+function serializeCourseControl(doc: Document, cc: CourseControl): Element {
+	const e = el(doc, 'CourseControl');
+	if (cc.type) e.setAttribute('type', cc.type);
+	const controlEl = el(doc, 'Control');
+	controlEl.appendChild(textEl(doc, 'Code', cc.code));
+	e.appendChild(controlEl);
+	return e;
+}
+
 function serializeCourse(doc: Document, course: Course): Element {
 	const e = el(doc, 'Course');
 	if (course.raceNumber !== undefined) e.setAttribute('raceNumber', String(course.raceNumber));
@@ -169,15 +178,6 @@ function serializeCourse(doc: Document, course: Course): Element {
 			e.appendChild(serializeCourseControl(doc, cc));
 		}
 	}
-	return e;
-}
-
-function serializeCourseControl(doc: Document, cc: CourseControl): Element {
-	const e = el(doc, 'CourseControl');
-	if (cc.type) e.setAttribute('type', cc.type);
-	const controlEl = el(doc, 'Control');
-	controlEl.appendChild(textEl(doc, 'Code', cc.code));
-	e.appendChild(controlEl);
 	return e;
 }
 

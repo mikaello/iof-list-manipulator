@@ -66,7 +66,9 @@
 		const rl = appState.resultList;
 		if (!rl) return;
 		const cr = rl.classResults[classIndex];
-		setClassControls(cr, [...editControls]);
+		// Capture source before mutating cr, so setClassControls uses the original strategy.
+		const source = classControls?.source ?? 'splits';
+		setClassControls(cr, [...editControls], source);
 
 		// Re-validate every person in the class against the updated control set
 		for (const pr of cr.personResults) {
