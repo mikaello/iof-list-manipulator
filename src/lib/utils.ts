@@ -90,3 +90,25 @@ export function recalcPositions(
 		r.timeBehind = winnerTime !== undefined ? (r.time ?? 0) - winnerTime : undefined;
 	}
 }
+
+/** Recalculate Position and TimeBehind for relay TeamResults in place */
+export function recalcTeamPositions(
+	teams: Array<{ status?: string; time?: number; position?: number; timeBehind?: number }>
+) {
+	const ranked = teams
+		.filter((t) => (t.status === 'OK' || t.status === undefined) && t.time !== undefined)
+		.sort((a, b) => (a.time ?? Infinity) - (b.time ?? Infinity));
+
+	const winnerTime = ranked[0]?.time;
+
+	for (const t of teams) {
+		t.position = undefined;
+		t.timeBehind = undefined;
+	}
+
+	let pos = 1;
+	for (const t of ranked) {
+		t.position = pos++;
+		t.timeBehind = winnerTime !== undefined ? (t.time ?? 0) - winnerTime : undefined;
+	}
+}

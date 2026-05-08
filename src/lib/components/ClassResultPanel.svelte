@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ClassResult } from '$lib/iof/types.js';
 	import { appState } from '$lib/state.svelte.js';
-	import { recalcPositions } from '$lib/utils.js';
+	import { recalcPositions, recalcTeamPositions } from '$lib/utils.js';
 	import PersonResultRow from './PersonResultRow.svelte';
 	import TeamResultPanel from './TeamResultPanel.svelte';
 
@@ -14,6 +14,15 @@
 
 	const course = $derived(cr.courses[0]);
 	const isRelay = $derived(cr.teamResults.length > 0);
+
+	/** Sorted list of leg numbers that exist in at least one team */
+	const distinctLegs = $derived(
+		isRelay
+			? [...new Set(cr.teamResults.flatMap((t) => t.teamMembers.map((m) => m.leg ?? 0)))].sort(
+					(a, b) => a - b
+				)
+			: []
+	);
 
 	function addRunner() {
 		const rl = appState.resultList;
@@ -40,6 +49,25 @@
 		if (!rl) return;
 		if (!confirm(`Remove class "${cr.class.name}" and all its results?`)) return;
 		rl.classResults.splice(classIndex, 1);
+		appState.markDirty();
+	}
+
+	function removeLeg(legNumber: number) {
+		const rl = appState.resultList;
+		if (!rl) return;
+		if (!confirm(`Remove leg ${legNumber} from all teams in "${cr.class.name}"? Team totals will be recalculated.`)) return;
+		const c = rl.classResults[classIndex];
+		for (const team of c.teamResults) {
+			team.teamMembers = team.teamMembers.filter((m) => (m.leg ?? 0) !== legNumber);
+			// Recalculate team total as sum of member times (only when all remaining members are OK)
+			const times = team.teamMembers.map((m) => m.time);
+			if (times.length > 0 && times.every((t) => t !== undefined)) {
+				team.time = times.reduce((sum, t) => sum + (t ?? 0), 0);
+			} else {
+				team.time = undefined;
+			}
+		}
+		recalcTeamPositions(c.teamResults);
 		appState.markDirty();
 	}
 
@@ -173,6 +201,22 @@
 			<span class="text-xs text-gray-400 dark:text-slate-500">
 				{cr.personResults.length + cr.teamResults.length} entries
 			</span>
+			{#if isRelay && distinctLegs.length > 1}
+				<select
+					aria-label="Remove a leg from class {cr.class.name}"
+					onchange={(e) => {
+						const leg = parseInt((e.target as HTMLSelectElement).value, 10);
+						if (!isNaN(leg)) removeLeg(leg);
+						(e.target as HTMLSelectElement).value = '';
+					}}
+					class="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-xs text-gray-600 hover:border-orange-300 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+				>
+					<option value="">Remove leg…</option>
+					{#each distinctLegs as leg (leg)}
+						<option value={leg}>Leg {leg}</option>
+					{/each}
+				</select>
+			{/if}
 			<button
 				type="button"
 				onclick={removeClassResult}
