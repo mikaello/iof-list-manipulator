@@ -64,6 +64,13 @@ export function reconcileSplitsForClass(
 	if (controls.length === 0) return true;
 
 	const requiredSet = new Set(controls);
+
+	// Drop any synthesised Missing entries for controls no longer required.
+	// (Missing entries have no time, so they are safe to remove when not needed.)
+	result.splitTimes = result.splitTimes.filter(
+		(st) => !(st.status === 'Missing' && !requiredSet.has(st.controlCode))
+	);
+
 	// Index existing splits by control code; keep first occurrence if duplicate
 	const splitByCode = new Map<string, (typeof result.splitTimes)[number]>();
 	for (const st of result.splitTimes) {

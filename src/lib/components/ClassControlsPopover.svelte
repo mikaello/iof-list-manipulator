@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ClassResult } from '$lib/iof/types.js';
-	import { getClassControls, setClassControls } from '$lib/iof/classControls.js';
+	import { getClassControls, setClassControls, reconcileSplitsForClass } from '$lib/iof/classControls.js';
+	import { recalcPositions, sortPersonResults } from '$lib/utils.js';
 	import { appState } from '$lib/state.svelte.js';
 
 	interface Props {
@@ -64,7 +65,23 @@
 	function save() {
 		const rl = appState.resultList;
 		if (!rl) return;
-		setClassControls(rl.classResults[classIndex], [...editControls]);
+		const cr = rl.classResults[classIndex];
+		setClassControls(cr, [...editControls]);
+
+		// Re-validate every person in the class against the updated control set
+		for (const pr of cr.personResults) {
+			for (const result of pr.results) {
+				const valid = reconcileSplitsForClass(result, editControls);
+				if (valid && result.status === 'MissingPunch') {
+					result.status = 'OK';
+				} else if (!valid && (result.status === 'OK' || result.status === 'Finished')) {
+					result.status = 'MissingPunch';
+				}
+			}
+		}
+
+		recalcPositions(cr.personResults.map((p) => p.results[0]).filter(Boolean));
+		sortPersonResults(cr.personResults);
 		appState.markDirty();
 		close();
 	}
