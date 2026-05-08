@@ -21,7 +21,7 @@ describe('extractZip', () => {
 		// This zip is produced by ISGEO form software: it uses ZIP64 extra fields
 		// in local/central headers but omits the ZIP64 EOCD record, causing
 		// fflate's unzipSync to attempt a ~4 GB allocation and crash.
-		const data = new Uint8Array(readFileSync(resolve(examplesDir, 'res2026-05-06.zip')));
+		const data = new Uint8Array(readFileSync(resolve(examplesDir, 'res2012-06-13.zip')));
 		const entries = extractZip(data);
 		const xmlKey = Object.keys(entries).find((k) => k.endsWith('.xml'));
 		expect(xmlKey).toBeDefined();
