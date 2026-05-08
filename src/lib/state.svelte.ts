@@ -28,6 +28,33 @@ function describeChange(beforeJson: string, afterJson: string): string {
 		const personKey = (p: { person: { name: { given: string; family: string } } }) =>
 			`${p.person.name.family}\0${p.person.name.given}`;
 
+		// Detect cross-class move: exactly one class lost a runner, one gained
+		const classCountDiffs = a.classResults.map((ac, ci) => {
+			const bc = b.classResults[ci];
+			if (!bc) return 0;
+			return ac.personResults.length - bc.personResults.length;
+		});
+		const gainedIdx = classCountDiffs.findIndex((d) => d > 0);
+		const lostIdx = classCountDiffs.findIndex((d) => d < 0);
+		if (
+			gainedIdx !== -1 &&
+			lostIdx !== -1 &&
+			classCountDiffs[gainedIdx] === 1 &&
+			classCountDiffs[lostIdx] === -1
+		) {
+			const fromClass = b.classResults[lostIdx].class.name;
+			const toClass = a.classResults[gainedIdx].class.name;
+			// Find the person who appeared in the gaining class
+			const bKeys = new Set(b.classResults[gainedIdx].personResults.map(personKey));
+			const movedPerson = a.classResults[gainedIdx].personResults.find(
+				(p) => !bKeys.has(personKey(p))
+			);
+			const name = movedPerson
+				? `${movedPerson.person.name.given} ${movedPerson.person.name.family}`.trim()
+				: 'Runner';
+			return `Moved: "${name}" from ${fromClass} to ${toClass}`;
+		}
+
 		for (let ci = 0; ci < a.classResults.length; ci++) {
 			const bc = b.classResults[ci];
 			const ac = a.classResults[ci];
