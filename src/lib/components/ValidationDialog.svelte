@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { appState } from '$lib/state.svelte.js';
 	import { validateXml } from '$lib/iof/validate.js';
 	import type { ValidationIssue } from '$lib/iof/validate.js';
@@ -21,7 +22,7 @@
 		if (xmllintMod) return;
 		const [mod, xsdRes] = await Promise.all([
 			import('xmllint-wasm'),
-			fetch('/iof.xsd'),
+			fetch(`${base}/iof.xsd`),
 		]);
 		xmllintMod = mod;
 		xsdContent = await xsdRes.text();
