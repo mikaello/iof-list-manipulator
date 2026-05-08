@@ -75,7 +75,7 @@
 		// Remove the control from class controls so reconciliation uses the updated list
 		const classCtrl = getClassControls(classResult);
 		const newControls = (classCtrl?.controls ?? order).filter((c) => c !== controlCode);
-		setClassControls(classResult, newControls);
+		setClassControls(classResult, newControls, classCtrl?.source ?? 'splits');
 
 		// Re-validate all runners against the updated controls
 		for (const pr of classResult.personResults) {

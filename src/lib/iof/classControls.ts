@@ -40,12 +40,26 @@ export function getClassControls(cr: ClassResult): ClassControls | null {
 
 /**
  * Persist a new control sequence for a class.
- * Always writes to courseControls on the first Course element (creating one if needed),
- * so subsequent calls always use the 'course' source regardless of the original source.
+ *
+ * The `source` parameter must match the original source returned by `getClassControls`:
+ * - `'course'`: controls were explicit `CourseControl` elements in the XML → write them
+ *   back to `courseControls` so the serializer round-trips them correctly.
+ * - `'splits'`: controls were inferred from split times → do NOT write `courseControls`
+ *   (leave the field absent) so the serializer never emits `CourseControl` elements for
+ *   this class.  The reconciled split times carry the sequence instead.
  */
-export function setClassControls(cr: ClassResult, newControls: string[]): void {
-	if (cr.courses.length === 0) cr.courses = [{}];
-	cr.courses[0].courseControls = newControls.map((code) => ({ code }));
+export function setClassControls(
+	cr: ClassResult,
+	newControls: string[],
+	source: ControlSource
+): void {
+	if (source === 'course') {
+		if (cr.courses.length === 0) cr.courses = [{}];
+		cr.courses[0].courseControls = newControls.map((code) => ({ code }));
+	} else {
+		// Ensure courseControls is absent so the serializer won't emit CourseControl.
+		if (cr.courses.length > 0) cr.courses[0].courseControls = undefined;
+	}
 }
 
 /**
