@@ -5,10 +5,12 @@
 	import EventHeader from '$lib/components/EventHeader.svelte';
 	import ClassResultPanel from '$lib/components/ClassResultPanel.svelte';
 	import ChangelogDialog from '$lib/components/ChangelogDialog.svelte';
+	import ValidationDialog from '$lib/components/ValidationDialog.svelte';
 
 	const rl = $derived(appState.resultList);
 	const error = $derived(appState.parseError);
 	let changelogOpen = $state(false);
+	let validationOpen = $state(false);
 
 	function addClass() {
 		if (!rl) return;
@@ -59,6 +61,19 @@
 				<ExportButton
 					filename={rl.event.name.replace(/[^a-zA-Z0-9-_]/g, '_') + '.xml'}
 				/>
+
+				<button
+					type="button"
+					onclick={() => (validationOpen = true)}
+					title="Validate XML against IOF 3.0"
+					aria-label="Validate XML"
+					class="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-100 transition-colors hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+					</svg>
+					Validate
+				</button>
 
 				<div class="mx-1 h-5 w-px bg-slate-700" role="separator" aria-hidden="true"></div>
 
@@ -159,3 +174,4 @@
 </div>
 
 <ChangelogDialog bind:open={changelogOpen} />
+<ValidationDialog bind:open={validationOpen} />

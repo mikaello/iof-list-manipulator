@@ -14,7 +14,7 @@
 
 	function parseXml(xml: string) {
 		try {
-			appState.setResultList(parseResultList(xml));
+			appState.setResultList(parseResultList(xml), xml);
 		} catch (e) {
 			appState.setParseError(e instanceof Error ? e.message : String(e));
 		}
