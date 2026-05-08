@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ClassResult } from '$lib/iof/types.js';
 	import { appState } from '$lib/state.svelte.js';
-	import { recalcPositions } from '$lib/utils.js';
+	import { recalcPositions, removeControlFromResults } from '$lib/utils.js';
 	import PersonResultRow from './PersonResultRow.svelte';
 	import TeamResultPanel from './TeamResultPanel.svelte';
 
@@ -14,6 +14,15 @@
 
 	const course = $derived(cr.courses[0]);
 	const isRelay = $derived(cr.teamResults.length > 0);
+
+	/** Ordered list of unique control codes across all competitors' split times (course order). */
+	const courseControls = $derived(
+		isRelay
+			? []
+			: cr.personResults
+					.flatMap((pr) => pr.results.flatMap((r) => r.splitTimes.map((st) => st.controlCode)))
+					.filter((code, i, arr) => arr.indexOf(code) === i)
+	);
 
 	function addRunner() {
 		const rl = appState.resultList;
@@ -40,6 +49,26 @@
 		if (!rl) return;
 		if (!confirm(`Remove class "${cr.class.name}" and all its results?`)) return;
 		rl.classResults.splice(classIndex, 1);
+		appState.markDirty();
+	}
+
+	function removeControl(controlCode: string) {
+		const rl = appState.resultList;
+		if (!rl) return;
+		const order = courseControls;
+		const pos = order.indexOf(controlCode);
+		const prevCode = pos > 0 ? order[pos - 1] : 'start';
+		const nextCode = pos < order.length - 1 ? order[pos + 1] : 'finish';
+		if (
+			!confirm(
+				`Remove control ${controlCode} from class "${cr.class.name}"?\n\n` +
+					`The leg time from ${prevCode} to ${nextCode} will be set to 0 for all competitors.`
+			)
+		)
+			return;
+		const allResults = rl.classResults[classIndex].personResults.flatMap((pr) => pr.results);
+		removeControlFromResults(allResults, order, controlCode);
+		recalcPositions(allResults);
 		appState.markDirty();
 	}
 
@@ -173,6 +202,22 @@
 			<span class="text-xs text-gray-400 dark:text-slate-500">
 				{cr.personResults.length + cr.teamResults.length} entries
 			</span>
+			{#if !isRelay && courseControls.length > 0}
+				<select
+					aria-label="Remove a control from class {cr.class.name}"
+					onchange={(e) => {
+						const code = (e.target as HTMLSelectElement).value;
+						if (code) removeControl(code);
+						(e.target as HTMLSelectElement).value = '';
+					}}
+					class="rounded border border-gray-200 bg-white px-1.5 py-0.5 text-xs text-gray-600 hover:border-orange-300 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+				>
+					<option value="">Remove control…</option>
+					{#each courseControls as code (code)}
+						<option value={code}>{code}</option>
+					{/each}
+				</select>
+			{/if}
 			<button
 				type="button"
 				onclick={removeClassResult}
