@@ -90,3 +90,68 @@ export function recalcPositions(
 		r.timeBehind = winnerTime !== undefined ? (r.time ?? 0) - winnerTime : undefined;
 	}
 }
+
+/**
+ * Remove a control from every result in a class, setting the leg time
+ * between the preceding and following control to zero for all competitors.
+ *
+ * Split times are cumulative elapsed times from start. Removing controlCode
+ * subtracts (nextSplit.time − prevSplit.time) from the total and from all
+ * subsequent split times, then deletes the split for controlCode.
+ *
+ * @param results    All PersonRaceResults in the class (mutated in place)
+ * @param courseOrder  Control codes in course order (used to find prev/next)
+ * @param controlCode  The control to remove
+ */
+export function removeControlFromResults(
+	results: Array<{
+		time?: number;
+		splitTimes: Array<{ controlCode: string; time?: number }>;
+	}>,
+	courseOrder: string[],
+	controlCode: string
+) {
+	const pos = courseOrder.indexOf(controlCode);
+	const prevCode = pos > 0 ? courseOrder[pos - 1] : null;
+	const nextCode = pos < courseOrder.length - 1 ? courseOrder[pos + 1] : null;
+
+	for (const result of results) {
+		const splits = result.splitTimes;
+
+		// Cumulative time of the preceding control (0 = start)
+		const prevTime =
+			prevCode !== null ? (splits.find((s) => s.controlCode === prevCode)?.time ?? 0) : 0;
+
+		// Cumulative time of the following control (fall back to finish time)
+		const nextTime =
+			nextCode !== null
+				? (splits.find((s) => s.controlCode === nextCode)?.time ?? result.time)
+				: result.time;
+
+		const legTime =
+			prevTime !== undefined && nextTime !== undefined ? nextTime - prevTime : undefined;
+
+		// Remove the split for the eliminated control
+		const removedIdx = splits.findIndex((s) => s.controlCode === controlCode);
+		if (removedIdx !== -1) splits.splice(removedIdx, 1);
+
+		if (legTime === undefined || legTime <= 0) continue;
+
+		// Shift all cumulative split times that come after the removed control
+		// (i.e., those at or beyond the next control's original position in course order)
+		if (nextCode !== null) {
+			const nextCourseIdx = courseOrder.indexOf(nextCode);
+			for (const s of splits) {
+				const idx = courseOrder.indexOf(s.controlCode);
+				if (idx >= nextCourseIdx && s.time !== undefined) {
+					s.time = Math.max(0, s.time - legTime);
+				}
+			}
+		}
+
+		// Subtract from total time
+		if (result.time !== undefined) {
+			result.time = Math.max(0, result.time - legTime);
+		}
+	}
+}
