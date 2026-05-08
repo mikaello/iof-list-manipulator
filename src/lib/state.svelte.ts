@@ -132,8 +132,8 @@ export const appState = (() => {
 
 	// Human-readable change log
 	let changeLog = $state<HistoryEntry[]>([]);
-	// The clean state at load time, used to diff the very first edit
-	let initialSnapshot = $state<string | null>(null);
+	// The last committed (clean) state — pushed to past on next markDirty, used for diff labels
+	let committed = $state<string | null>(null);
 
 	let snapshotTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -145,11 +145,13 @@ export const appState = (() => {
 		if (snapshotTimer) clearTimeout(snapshotTimer);
 		snapshotTimer = setTimeout(() => {
 			if (resultList) {
-				const before = past.length > 0 ? past[past.length - 1] : null;
 				const snap = JSON.stringify(resultList);
-				const label = before ? describeChange(before, snap) : 'Edit';
+				if (snap === committed) { snapshotTimer = null; return; }
+				const label = committed ? describeChange(committed, snap) : 'Edit';
 				addLog(label, 'edit');
-				past = [...past.slice(-(MAX_HISTORY - 1)), snap];
+				// Push the pre-batch state so undo can restore to it
+				if (committed !== null) past = [...past.slice(-(MAX_HISTORY - 1)), committed];
+				committed = snap;
 				future = [];
 			}
 			snapshotTimer = null;
@@ -185,7 +187,7 @@ export const appState = (() => {
 			past = [];
 			future = [];
 			rawXml = xml ?? null;
-			initialSnapshot = JSON.stringify(rl);
+			committed = JSON.stringify(rl);
 			addLog(`Loaded: ${rl.event.name}`, 'load');
 		},
 		setParseError(msg: string) {
@@ -198,13 +200,14 @@ export const appState = (() => {
 		},
 		markDirty() {
 			if (!isDirty) {
-				// Snapshot the state just before the first change in a batch
+				// First edit of a new batch: push the pre-mutation committed state to past,
+				// then advance committed to the current (post-mutation) state.
 				if (resultList) {
-					const before = past.length > 0 ? past[past.length - 1] : initialSnapshot;
 					const snap = JSON.stringify(resultList);
-					const label = before ? describeChange(before, snap) : 'Edit';
+					const label = committed ? describeChange(committed, snap) : 'Edit';
 					addLog(label, 'edit');
-					past = [...past.slice(-(MAX_HISTORY - 1)), snap];
+					if (committed !== null) past = [...past.slice(-(MAX_HISTORY - 1)), committed];
+					committed = snap;
 					future = [];
 				}
 				isDirty = true;
@@ -217,21 +220,25 @@ export const appState = (() => {
 		},
 		undo() {
 			if (!resultList || past.length === 0) return;
+			if (snapshotTimer) { clearTimeout(snapshotTimer); snapshotTimer = null; }
 			const current = JSON.stringify(resultList);
 			future = [current, ...future.slice(0, MAX_HISTORY - 1)];
 			const prev = past[past.length - 1];
 			past = past.slice(0, -1);
 			resultList = JSON.parse(prev) as ResultList;
+			committed = prev;
 			isDirty = past.length > 0;
 			addLog('↩ Undo', 'undo');
 		},
 		redo() {
 			if (!resultList || future.length === 0) return;
+			if (snapshotTimer) { clearTimeout(snapshotTimer); snapshotTimer = null; }
 			const current = JSON.stringify(resultList);
 			past = [...past.slice(-(MAX_HISTORY - 1)), current];
 			const next = future[0];
 			future = future.slice(1);
 			resultList = JSON.parse(next) as ResultList;
+			committed = next;
 			isDirty = true;
 			addLog('↪ Redo', 'redo');
 		},
@@ -243,7 +250,7 @@ export const appState = (() => {
 			past = [];
 			future = [];
 			changeLog = [];
-			initialSnapshot = null;
+			committed = null;
 		}
 	};
 })();
