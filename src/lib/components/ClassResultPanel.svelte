@@ -2,6 +2,7 @@
 	import type { ClassResult } from '$lib/iof/types.js';
 	import { appState } from '$lib/state.svelte.js';
 	import { recalcPositions, removeControlFromResults } from '$lib/utils.js';
+	import { getClassControls, reconcileSplitsForClass, setClassControls } from '$lib/iof/classControls.js';
 	import PersonResultRow from './PersonResultRow.svelte';
 	import TeamResultPanel from './TeamResultPanel.svelte';
 	import ClassControlsPopover from './ClassControlsPopover.svelte';
@@ -67,8 +68,24 @@
 			)
 		)
 			return;
-		const allResults = rl.classResults[classIndex].personResults.flatMap((pr) => pr.results);
+		const classResult = rl.classResults[classIndex];
+		const allResults = classResult.personResults.flatMap((pr) => pr.results);
 		removeControlFromResults(allResults, order, controlCode);
+
+		// Remove the control from class controls so reconciliation uses the updated list
+		const classCtrl = getClassControls(classResult);
+		const newControls = (classCtrl?.controls ?? order).filter((c) => c !== controlCode);
+		setClassControls(classResult, newControls);
+
+		// Re-validate all runners against the updated controls
+		for (const pr of classResult.personResults) {
+			for (const result of pr.results) {
+				const valid = reconcileSplitsForClass(result, newControls);
+				if (!valid && result.status !== 'MissingPunch') result.status = 'MissingPunch';
+				else if (valid && result.status === 'MissingPunch') result.status = 'OK';
+			}
+		}
+
 		recalcPositions(allResults);
 		appState.markDirty();
 	}
