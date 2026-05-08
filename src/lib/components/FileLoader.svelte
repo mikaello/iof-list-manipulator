@@ -51,7 +51,7 @@
 				parseXml(reader.result as string);
 				inputEl.value = '';
 			};
-			reader.readAsText(file);
+			reader.readAsText(file, 'UTF-8');
 		}
 	}
 

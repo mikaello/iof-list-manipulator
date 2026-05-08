@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PersonResult } from '$lib/iof/types.js';
 	import { ALL_RESULT_STATUSES } from '$lib/iof/types.js';
-	import { formatTime, parseTime, statusBgClass, statusLabel, recalcPositions } from '$lib/utils.js';
+	import { formatTime, parseTime, statusBgClass, statusLabel, recalcPositions, sortPersonResults } from '$lib/utils.js';
 	import { appState } from '$lib/state.svelte.js';
 	import SplitTimeList from './SplitTimeList.svelte';
 
@@ -15,6 +15,13 @@
 
 	const result = $derived(pr.results[0]);
 	const personName = $derived(`${pr.person.name.given} ${pr.person.name.family}`.trim());
+
+	/** Other individual-race classes available to move to */
+	const otherClasses = $derived(
+		(appState.resultList?.classResults ?? [])
+			.map((cr, i) => ({ name: cr.class.name, index: i }))
+			.filter((c) => c.index !== classIndex && (appState.resultList?.classResults[c.index].teamResults.length ?? 0) === 0)
+	);
 
 	function markDirty() {
 		const rl = appState.resultList;
@@ -58,6 +65,18 @@
 		if (!confirm(`Remove ${name}?`)) return;
 		rl.classResults[classIndex].personResults.splice(resultIndex, 1);
 		recalcPositions(rl.classResults[classIndex].personResults.map((p) => p.results[0]).filter(Boolean));
+		appState.markDirty();
+	}
+
+	function moveToClass(targetIndex: number) {
+		const rl = appState.resultList;
+		if (!rl) return;
+		const [moved] = rl.classResults[classIndex].personResults.splice(resultIndex, 1);
+		rl.classResults[targetIndex].personResults.push(moved);
+		recalcPositions(rl.classResults[classIndex].personResults.map((p) => p.results[0]).filter(Boolean));
+		recalcPositions(rl.classResults[targetIndex].personResults.map((p) => p.results[0]).filter(Boolean));
+		sortPersonResults(rl.classResults[classIndex].personResults);
+		sortPersonResults(rl.classResults[targetIndex].personResults);
 		appState.markDirty();
 	}
 
@@ -186,15 +205,33 @@
 		{/if}
 	</td>
 
-	<!-- Remove -->
+	<!-- Actions: move to class + remove -->
 	<td class="px-4 py-2">
-		<button
-			type="button"
-			onclick={removeRunner}
-			aria-label="Remove {personName || 'runner'}"
-			class="invisible rounded px-1.5 py-0.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 group-hover:visible focus-visible:visible dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-		>
-			Remove
-		</button>
+		<div class="invisible flex items-center gap-1 group-hover:visible focus-within:visible">
+			{#if otherClasses.length > 0}
+				<select
+					aria-label="Move {personName || 'runner'} to class"
+					onchange={(e) => {
+						const idx = parseInt((e.target as HTMLSelectElement).value, 10);
+						if (!isNaN(idx)) moveToClass(idx);
+						(e.target as HTMLSelectElement).value = '';
+					}}
+					class="rounded border border-gray-200 bg-white px-1 py-0.5 text-xs text-gray-600 hover:border-indigo-300 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300"
+				>
+					<option value="">Move to…</option>
+					{#each otherClasses as c (c.index)}
+						<option value={c.index}>{c.name}</option>
+					{/each}
+				</select>
+			{/if}
+			<button
+				type="button"
+				onclick={removeRunner}
+				aria-label="Remove {personName || 'runner'}"
+				class="rounded px-1.5 py-0.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+			>
+				Remove
+			</button>
+		</div>
 	</td>
 </tr>

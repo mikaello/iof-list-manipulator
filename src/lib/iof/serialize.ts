@@ -226,9 +226,8 @@ export function serializeResultList(rl: ResultList): string {
 
 	const serializer = new XMLSerializer();
 	const xmlStr = serializer.serializeToString(doc);
-	// Prepend XML declaration if not present
-	if (!xmlStr.startsWith('<?xml')) {
-		return `<?xml version="1.0" encoding="UTF-8"?>\n${xmlStr}`;
-	}
-	return xmlStr;
+	// Strip any XML declaration the serializer may have added (it can declare
+	// encoding="UTF-16" which would be wrong for a UTF-8 Blob), then add our own.
+	const stripped = xmlStr.replace(/^<\?xml[^?]*\?>\s*/i, '');
+	return `<?xml version="1.0" encoding="UTF-8"?>\n${stripped}`;
 }

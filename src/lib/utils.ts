@@ -92,6 +92,23 @@ export function recalcPositions(
 }
 
 /**
+ * Sort personResults in place: OK finishers (with a position) first by time,
+ * all others (DNS, DNF, DSQ, etc.) appended afterwards in their original order.
+ */
+export function sortPersonResults(
+	personResults: Array<{ results: Array<{ position?: number; time?: number }> }>
+): void {
+	personResults.sort((a, b) => {
+		const pa = a.results[0]?.position;
+		const pb = b.results[0]?.position;
+		if (pa !== undefined && pb !== undefined) return pa - pb;
+		if (pa !== undefined) return -1;
+		if (pb !== undefined) return 1;
+		return 0;
+	});
+}
+
+/**
  * Remove a control from every result in a class, setting the leg time
  * between the preceding and following control to zero for all competitors.
  *
