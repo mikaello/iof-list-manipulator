@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { unzipSync } from 'fflate';
+	import { extractZip } from '$lib/zip.js';
 	import { parseResultList } from '$lib/iof/parse.js';
 	import { appState } from '$lib/state.svelte.js';
 
@@ -31,7 +31,7 @@
 			reader.onload = () => {
 				try {
 					const data = new Uint8Array(reader.result as ArrayBuffer);
-					const entries = unzipSync(data);
+					const entries = extractZip(data);
 					const xmlKey = Object.keys(entries).find((k) => k.toLowerCase().endsWith('.xml'));
 					if (!xmlKey) {
 						appState.setParseError('No .xml file found inside the zip archive.');
