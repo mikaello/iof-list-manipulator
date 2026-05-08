@@ -20,14 +20,32 @@
 		}
 	}
 
+	/**
+	 * Decode raw XML bytes respecting the encoding declared in the XML prolog.
+	 * The prolog is always ASCII-compatible, so we can safely peek at it as
+	 * Latin-1 before committing to a full decode.
+	 */
+	function decodeXmlBytes(bytes: Uint8Array): string {
+		const peek = new TextDecoder('latin1').decode(bytes.subarray(0, 200));
+		const match = peek.match(/encoding=["']([^"']+)["']/i);
+		const encoding = match?.[1] ?? 'UTF-8';
+		try {
+			return new TextDecoder(encoding).decode(bytes);
+		} catch {
+			// Unknown encoding label — fall back to UTF-8
+			return new TextDecoder('UTF-8').decode(bytes);
+		}
+	}
+
 	function loadFile(file: File) {
 		const isZip =
 			file.name.endsWith('.zip') ||
 			file.type === 'application/zip' ||
 			file.type === 'application/x-zip-compressed';
 
+		const reader = new FileReader();
+
 		if (isZip) {
-			const reader = new FileReader();
 			reader.onload = () => {
 				try {
 					const data = new Uint8Array(reader.result as ArrayBuffer);
@@ -37,8 +55,7 @@
 						appState.setParseError('No .xml file found inside the zip archive.');
 						return;
 					}
-					const decoder = new TextDecoder();
-					parseXml(decoder.decode(entries[xmlKey]));
+					parseXml(decodeXmlBytes(entries[xmlKey]));
 				} catch (e) {
 					appState.setParseError(e instanceof Error ? e.message : String(e));
 				}
@@ -46,12 +63,11 @@
 			};
 			reader.readAsArrayBuffer(file);
 		} else {
-			const reader = new FileReader();
 			reader.onload = () => {
-				parseXml(reader.result as string);
+				parseXml(decodeXmlBytes(new Uint8Array(reader.result as ArrayBuffer)));
 				inputEl.value = '';
 			};
-			reader.readAsText(file, 'UTF-8');
+			reader.readAsArrayBuffer(file);
 		}
 	}
 
