@@ -28,6 +28,11 @@
 
 	const titleId = $derived(`splits-title-${classIndex}-${resultIndex}-${raceResultIndex}-${isTeamMember ? teamIndex : ''}`);
 
+	const additionalCount = $derived(splitTimes.filter((st) => st.status === 'Additional').length);
+	const missingCount = $derived(splitTimes.filter((st) => st.status === 'Missing').length);
+	/** Actual punches (OK + Additional); Missing entries are synthesised, not real punches. */
+	const punchedCount = $derived(splitTimes.length - missingCount);
+
 	function openDialog() {
 		dialogEl.showModal();
 	}
@@ -115,17 +120,23 @@
 	bind:this={openBtnEl}
 	type="button"
 	onclick={openDialog}
-	aria-label="{splitTimes.length > 0 ? `Edit ${splitTimes.length} splits${personName ? ` for ${personName}` : ''}` : `Add splits${personName ? ` for ${personName}` : ''}`}"
+	aria-label="{punchedCount > 0 ? `Edit ${punchedCount} split${punchedCount !== 1 ? 's' : ''}${personName ? ` for ${personName}` : ''}` : `Add splits${personName ? ` for ${personName}` : ''}`}"
 	class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
-		{splitTimes.length > 0
+		{punchedCount > 0
 			? 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/40'
 			: 'border-dashed border-gray-300 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 dark:border-slate-600 dark:text-slate-500 dark:hover:border-indigo-600 dark:hover:text-indigo-400'}"
 >
 	<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
 		<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
 	</svg>
-	{#if splitTimes.length > 0}
-		{splitTimes.length} split{splitTimes.length !== 1 ? 's' : ''}
+	{#if punchedCount > 0}
+		{punchedCount} split{punchedCount !== 1 ? 's' : ''}
+		{#if additionalCount > 0}
+			<span title="{additionalCount} additional punch{additionalCount !== 1 ? 'es' : ''} not part of course" class="rounded-full bg-amber-100 px-1 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">+{additionalCount}</span>
+		{/if}
+		{#if missingCount > 0}
+			<span title="{missingCount} missing required control{missingCount !== 1 ? 's' : ''}" class="rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-600 dark:bg-red-900/40 dark:text-red-400">!{missingCount}</span>
+		{/if}
 	{:else}
 		+ Splits
 	{/if}
@@ -175,9 +186,11 @@
 					</thead>
 					<tbody>
 						{#each splitTimes as st, i (i)}
-							<tr class="group border-b border-gray-100 dark:border-slate-800">
+							<tr class="group border-b border-gray-100 dark:border-slate-800
+								{st.status === 'Additional' ? 'opacity-60' : ''}">
 							<td class="py-3 pr-6 text-gray-400 dark:text-slate-600">{i + 1}</td>
 							<td class="py-3 pr-6">
+								<div class="flex items-center gap-1.5">
 									<input
 										type="text"
 										value={st.controlCode}
@@ -188,6 +201,12 @@
 										}}
 										class="w-16 rounded border border-transparent bg-transparent px-1.5 py-0.5 font-mono hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/20"
 									/>
+									{#if st.status === 'Additional'}
+										<span title="Additional punch — not part of the course" class="cursor-default rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">extra</span>
+									{:else if st.status === 'Missing'}
+										<span title="Required control not punched" class="cursor-default rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600 dark:bg-red-900/40 dark:text-red-400">missing</span>
+									{/if}
+								</div>
 								</td>
 							<td class="py-3 pr-6">
 									<input

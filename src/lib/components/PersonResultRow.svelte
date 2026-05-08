@@ -3,6 +3,7 @@
 	import { ALL_RESULT_STATUSES } from '$lib/iof/types.js';
 	import { formatTime, parseTime, statusBgClass, statusLabel, recalcPositions, sortPersonResults } from '$lib/utils.js';
 	import { appState } from '$lib/state.svelte.js';
+	import { getClassControls, reconcileSplitsForClass } from '$lib/iof/classControls.js';
 	import SplitTimeList from './SplitTimeList.svelte';
 
 	interface Props {
@@ -72,6 +73,18 @@
 		const rl = appState.resultList;
 		if (!rl) return;
 		const [moved] = rl.classResults[classIndex].personResults.splice(resultIndex, 1);
+
+		// Validate & reconcile splits against the target class's control sequence
+		const targetControls = getClassControls(rl.classResults[targetIndex]);
+		for (const result of moved.results) {
+			if (targetControls) {
+				const valid = reconcileSplitsForClass(result, targetControls.controls);
+				if (!valid && (result.status === 'OK' || result.status === 'Finished')) {
+					result.status = 'MissingPunch';
+				}
+			}
+		}
+
 		rl.classResults[targetIndex].personResults.push(moved);
 		recalcPositions(rl.classResults[classIndex].personResults.map((p) => p.results[0]).filter(Boolean));
 		recalcPositions(rl.classResults[targetIndex].personResults.map((p) => p.results[0]).filter(Boolean));
