@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { unzipSync } from 'fflate';
 	import { parseResultList } from '$lib/iof/parse.js';
 	import { appState } from '$lib/state.svelte.js';
 
@@ -11,17 +12,47 @@
 	let inputEl: HTMLInputElement;
 	let dragOver = $state(false);
 
+	function parseXml(xml: string) {
+		try {
+			appState.setResultList(parseResultList(xml));
+		} catch (e) {
+			appState.setParseError(e instanceof Error ? e.message : String(e));
+		}
+	}
+
 	function loadFile(file: File) {
-		const reader = new FileReader();
-		reader.onload = () => {
-			try {
-				appState.setResultList(parseResultList(reader.result as string));
-			} catch (e) {
-				appState.setParseError(e instanceof Error ? e.message : String(e));
-			}
-			inputEl.value = '';
-		};
-		reader.readAsText(file);
+		const isZip =
+			file.name.endsWith('.zip') ||
+			file.type === 'application/zip' ||
+			file.type === 'application/x-zip-compressed';
+
+		if (isZip) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				try {
+					const data = new Uint8Array(reader.result as ArrayBuffer);
+					const entries = unzipSync(data);
+					const xmlKey = Object.keys(entries).find((k) => k.toLowerCase().endsWith('.xml'));
+					if (!xmlKey) {
+						appState.setParseError('No .xml file found inside the zip archive.');
+						return;
+					}
+					const decoder = new TextDecoder();
+					parseXml(decoder.decode(entries[xmlKey]));
+				} catch (e) {
+					appState.setParseError(e instanceof Error ? e.message : String(e));
+				}
+				inputEl.value = '';
+			};
+			reader.readAsArrayBuffer(file);
+		} else {
+			const reader = new FileReader();
+			reader.onload = () => {
+				parseXml(reader.result as string);
+				inputEl.value = '';
+			};
+			reader.readAsText(file);
+		}
 	}
 
 	function handleChange(e: Event) {
@@ -41,7 +72,7 @@
 <input
 	bind:this={inputEl}
 	type="file"
-	accept=".xml,application/xml,text/xml"
+	accept=".xml,.zip,application/xml,text/xml,application/zip,application/x-zip-compressed"
 	style="display:none"
 	tabindex="-1"
 	onchange={handleChange}
@@ -75,7 +106,7 @@
 				{dragOver ? 'Drop to load' : 'Load IOF XML result list'}
 			</p>
 			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-				Click to browse, or drag and drop a <code class="font-mono">.xml</code> file
+				Click to browse, or drag and drop a <code class="font-mono">.xml</code> or <code class="font-mono">.zip</code> file
 			</p>
 		</div>
 	</button>
