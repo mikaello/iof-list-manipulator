@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PersonResult } from '$lib/iof/types.js';
 	import { ALL_RESULT_STATUSES } from '$lib/iof/types.js';
-	import { formatTime, parseTime, statusBgClass, statusLabel, recalcPositions } from '$lib/utils.js';
+	import { formatTime, parseTime, statusBgClass, statusLabel, recalcPositions, sortPersonResults } from '$lib/utils.js';
 	import { appState } from '$lib/state.svelte.js';
 	import SplitTimeList from './SplitTimeList.svelte';
 
@@ -75,6 +75,8 @@
 		rl.classResults[targetIndex].personResults.push(moved);
 		recalcPositions(rl.classResults[classIndex].personResults.map((p) => p.results[0]).filter(Boolean));
 		recalcPositions(rl.classResults[targetIndex].personResults.map((p) => p.results[0]).filter(Boolean));
+		sortPersonResults(rl.classResults[classIndex].personResults);
+		sortPersonResults(rl.classResults[targetIndex].personResults);
 		appState.markDirty();
 	}
 
