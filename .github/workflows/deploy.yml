@@ -6,19 +6,15 @@ on:
       - main
       - master
 
-# Required for the deploy-pages action
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Only one deployment at a time; cancel any in-progress run
 concurrency:
-  group: pages
+  group: deploy-main
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -28,29 +24,19 @@ jobs:
           node-version: 24
           cache: npm
 
-      # Detects the repo base path (e.g. /iof-list-manipulator) automatically
-      - uses: actions/configure-pages@v6
-        id: pages
-
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          BASE_PATH: /iof-list-manipulator
 
-      - uses: actions/upload-pages-artifact@v5
+      - name: Deploy to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: build/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v5
+          branch: gh-pages
+          folder: build
+          clean: true
+          clean-exclude: |
+            pr-*/
