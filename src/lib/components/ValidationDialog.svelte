@@ -11,17 +11,72 @@
 
 	let issues = $state<ValidationIssue[]>([]);
 	let validated = $state(false);
+	let loading = $state(false);
 
-	function runValidation() {
+	// Cached after first load — subsequent clicks are instant.
+	let xmllintMod: typeof import('xmllint-wasm') | null = null;
+	let xsdContent: string | null = null;
+
+	async function loadXmllint(): Promise<void> {
+		if (xmllintMod) return;
+		const [mod, xsdRes] = await Promise.all([
+			import('xmllint-wasm'),
+			fetch('/iof.xsd'),
+		]);
+		xmllintMod = mod;
+		xsdContent = await xsdRes.text();
+	}
+
+	async function runValidation() {
 		const xml = appState.rawXml;
 		if (!xml) return;
-		issues = validateXml(xml);
+
+		loading = true;
+		validated = false;
+		issues = [];
+
+		const structuralIssues = validateXml(xml);
+
+		try {
+			await loadXmllint();
+			const result = await xmllintMod!.validateXML({
+				xml: [{ fileName: 'result.xml', contents: xml }],
+				schema: [xsdContent!],
+			});
+
+			if (result.valid) {
+				// XSD passed — show structural issues (errors + quality warnings)
+				issues = structuralIssues;
+			} else {
+				// XSD failed — show authoritative XSD errors (with line numbers) + quality warnings
+				const xsdErrors: ValidationIssue[] = result.errors.map((e) => ({
+					severity: 'error' as const,
+					message: e.loc ? `Line ${e.loc.lineNumber}: ${e.message}` : e.message,
+				}));
+				issues = [
+					...xsdErrors,
+					...structuralIssues.filter((i) => i.severity === 'warning'),
+				];
+			}
+		} catch (err) {
+			// Fall back to structural-only if xmllint fails to load
+			issues = [
+				...structuralIssues,
+				{
+					severity: 'warning' as const,
+					message: `Full XSD validation unavailable: ${String(err)}`,
+				},
+			];
+		}
+
 		validated = true;
+		loading = false;
 	}
 
 	$effect(() => {
 		if (open) {
 			validated = false;
+			loading = false;
 			issues = [];
 		}
 	});
@@ -65,9 +120,19 @@
 
 			<!-- Body -->
 			<div class="flex-1 overflow-y-auto px-5 py-4">
-				{#if !validated}
+				{#if loading}
+					<div class="flex flex-col items-center gap-3 py-8 text-center">
+						<svg class="h-8 w-8 animate-spin text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+						</svg>
+						<p class="text-sm text-gray-500 dark:text-slate-400">Loading validator…</p>
+					</div>
+				{:else if !validated}
 					<p class="mb-4 text-sm text-gray-500 dark:text-slate-400">
-						Run a structural check of the loaded XML against the IOF Interface Standard 3.0 requirements.
+						Validates the loaded XML against the official IOF Interface Standard 3.0 XSD schema using
+						<a href="https://github.com/noppa/xmllint-wasm" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600 dark:hover:text-indigo-400">xmllint-wasm</a>.
+						The validator (~860 KB) is only downloaded on first use.
 					</p>
 					<button
 						type="button"
@@ -84,7 +149,7 @@
 							</svg>
 						</div>
 						<p class="font-semibold text-gray-800 dark:text-gray-100">No issues found</p>
-						<p class="text-sm text-gray-500 dark:text-slate-400">The file conforms to IOF XML 3.0 structural requirements.</p>
+						<p class="text-sm text-gray-500 dark:text-slate-400">The file is valid according to the IOF XML 3.0 XSD schema.</p>
 					</div>
 				{:else}
 					<div class="mb-3 flex gap-3 text-sm">
@@ -112,7 +177,7 @@
 			</div>
 
 			<!-- Footer -->
-			{#if validated}
+			{#if validated && !loading}
 				<div class="border-t border-gray-200 px-5 py-3 dark:border-slate-700">
 					<button
 						type="button"

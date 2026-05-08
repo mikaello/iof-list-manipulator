@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { describe, it, expect } from 'vitest';
 import { JSDOM } from 'jsdom';
 import { validateXml } from './validate.js';
+import { validateXML } from 'xmllint-wasm';
 
 // Set up a DOM environment for DOMParser
 const dom = new JSDOM('', { contentType: 'text/html' });
@@ -11,10 +12,13 @@ global.DOMParser = dom.window.DOMParser;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const examplesDir = resolve(__dirname, '../../../examples');
+const repoRoot = resolve(__dirname, '../../..');
 
 function loadExample(name: string): string {
 	return readFileSync(resolve(examplesDir, name), 'utf8');
 }
+
+const xsdContent = readFileSync(resolve(repoRoot, 'static/iof.xsd'), 'utf8');
 
 // ---- Tests --------------------------------------------------------------
 
@@ -111,5 +115,42 @@ describe('validateXml — detects structural problems', () => {
 </ResultList>`;
 		const issues = validateXml(xml);
 		expect(issues.some((i) => i.severity === 'warning' && /negative/i.test(i.message))).toBe(true);
+	});
+});
+
+describe('xmllint-wasm — XSD validation against official IOF schema', () => {
+	for (const name of ['ResultList1.xml', 'ResultList2.xml', 'ResultList3.xml', 'ResultList4.xml']) {
+		it(`${name} is valid per iof.xsd`, async () => {
+			const xml = loadExample(name);
+			const result = await validateXML({
+				xml: [{ fileName: name, contents: xml }],
+				schema: [xsdContent],
+			});
+			expect(
+				result.errors.map((e) => e.rawMessage),
+				`XSD errors in ${name}`
+			).toHaveLength(0);
+			expect(result.valid).toBe(true);
+		});
+	}
+
+	it('reports XSD error for invalid Status value', async () => {
+		const xml = `<?xml version="1.0"?>
+<ResultList xmlns="http://www.orienteering.org/datastandard/3.0" iofVersion="3.0">
+  <Event><Name>Test</Name></Event>
+  <ClassResult>
+    <Class><Name>M21</Name></Class>
+    <PersonResult>
+      <Person><Name><Family>Smith</Family><Given>John</Given></Name></Person>
+      <Result><Status>InvalidStatus</Status></Result>
+    </PersonResult>
+  </ClassResult>
+</ResultList>`;
+		const result = await validateXML({
+			xml: [{ fileName: 'test.xml', contents: xml }],
+			schema: [xsdContent],
+		});
+		expect(result.valid).toBe(false);
+		expect(result.errors.length).toBeGreaterThan(0);
 	});
 });
