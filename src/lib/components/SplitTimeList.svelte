@@ -28,6 +28,9 @@
 
 	const titleId = $derived(`splits-title-${classIndex}-${resultIndex}-${raceResultIndex}-${isTeamMember ? teamIndex : ''}`);
 
+	const additionalCount = $derived(splitTimes.filter((st) => st.status === 'Additional').length);
+	const missingCount = $derived(splitTimes.filter((st) => st.status === 'Missing').length);
+
 	function openDialog() {
 		dialogEl.showModal();
 	}
@@ -126,6 +129,12 @@
 	</svg>
 	{#if splitTimes.length > 0}
 		{splitTimes.length} split{splitTimes.length !== 1 ? 's' : ''}
+		{#if additionalCount > 0}
+			<span title="{additionalCount} additional punch{additionalCount !== 1 ? 'es' : ''} not part of course" class="rounded-full bg-amber-100 px-1 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">+{additionalCount}</span>
+		{/if}
+		{#if missingCount > 0}
+			<span title="{missingCount} missing required control{missingCount !== 1 ? 's' : ''}" class="rounded-full bg-red-100 px-1 text-[10px] font-semibold text-red-600 dark:bg-red-900/40 dark:text-red-400">!{missingCount}</span>
+		{/if}
 	{:else}
 		+ Splits
 	{/if}
@@ -175,9 +184,11 @@
 					</thead>
 					<tbody>
 						{#each splitTimes as st, i (i)}
-							<tr class="group border-b border-gray-100 dark:border-slate-800">
+							<tr class="group border-b border-gray-100 dark:border-slate-800
+								{st.status === 'Additional' ? 'opacity-60' : ''}">
 							<td class="py-3 pr-6 text-gray-400 dark:text-slate-600">{i + 1}</td>
 							<td class="py-3 pr-6">
+								<div class="flex items-center gap-1.5">
 									<input
 										type="text"
 										value={st.controlCode}
@@ -188,6 +199,12 @@
 										}}
 										class="w-16 rounded border border-transparent bg-transparent px-1.5 py-0.5 font-mono hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/20"
 									/>
+									{#if st.status === 'Additional'}
+										<span title="Additional punch — not part of the course" class="cursor-default rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">extra</span>
+									{:else if st.status === 'Missing'}
+										<span title="Required control not punched" class="cursor-default rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-semibold text-red-600 dark:bg-red-900/40 dark:text-red-400">missing</span>
+									{/if}
+								</div>
 								</td>
 							<td class="py-3 pr-6">
 									<input
