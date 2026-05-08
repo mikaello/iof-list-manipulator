@@ -24,6 +24,10 @@ function describeChange(beforeJson: string, afterJson: string): string {
 			return a.classResults.length > b.classResults.length ? 'Class added' : 'Class removed';
 		}
 
+		// Sort helper for stable person comparison independent of list order
+		const personKey = (p: { person: { name: { given: string; family: string } } }) =>
+			`${p.person.name.family}\0${p.person.name.given}`;
+
 		for (let ci = 0; ci < a.classResults.length; ci++) {
 			const bc = b.classResults[ci];
 			const ac = a.classResults[ci];
@@ -31,20 +35,29 @@ function describeChange(beforeJson: string, afterJson: string): string {
 
 			if (bc.class.name !== ac.class.name) return `Class renamed → "${ac.class.name}"`;
 
-			// Individual
+			// Course controls changed (before person loop so it takes priority)
+			if (JSON.stringify(bc.courses) !== JSON.stringify(ac.courses)) {
+				return `Controls updated — ${ac.class.name}`;
+			}
+
+			// Individual results — sort by name for stable comparison
 			if (bc.personResults.length !== ac.personResults.length) {
 				return ac.personResults.length > bc.personResults.length
 					? `Runner added — ${ac.class.name}`
 					: `Runner removed — ${ac.class.name}`;
 			}
-			for (let ri = 0; ri < ac.personResults.length; ri++) {
-				const bp = bc.personResults[ri];
-				const ap = ac.personResults[ri];
+			const bPersons = [...bc.personResults].sort((x, y) =>
+				personKey(x).localeCompare(personKey(y))
+			);
+			const aPersons = [...ac.personResults].sort((x, y) =>
+				personKey(x).localeCompare(personKey(y))
+			);
+			for (let ri = 0; ri < aPersons.length; ri++) {
+				const bp = bPersons[ri];
+				const ap = aPersons[ri];
 				if (!bp) continue;
-				const aName =
-					`${ap.person.name.given} ${ap.person.name.family}`.trim() || `Runner ${ri + 1}`;
-				const bName =
-					`${bp.person.name.given} ${bp.person.name.family}`.trim() || `Runner ${ri + 1}`;
+				const aName = `${ap.person.name.given} ${ap.person.name.family}`.trim() || `Runner ${ri + 1}`;
+				const bName = `${bp.person.name.given} ${bp.person.name.family}`.trim() || `Runner ${ri + 1}`;
 				if (bName !== aName) return `Renamed: "${aName}" — ${ac.class.name}`;
 				if ((bp.organisation?.name ?? '') !== (ap.organisation?.name ?? ''))
 					return `Club updated — ${aName}`;
@@ -54,14 +67,16 @@ function describeChange(beforeJson: string, afterJson: string): string {
 					if (br.time !== ar.time) return `Time updated — ${aName}`;
 					if (br.status !== ar.status) return `Status → ${ar.status} — ${aName}`;
 					if ((br.bibNumber ?? '') !== (ar.bibNumber ?? '')) return `Bib updated — ${aName}`;
-					if (br.splitTimes.length !== ar.splitTimes.length)
-						return br.splitTimes.length < ar.splitTimes.length
+					const bPunched = br.splitTimes.filter((s) => s.status !== 'Missing');
+					const aPunched = ar.splitTimes.filter((s) => s.status !== 'Missing');
+					if (bPunched.length !== aPunched.length)
+						return bPunched.length < aPunched.length
 							? `Split added — ${aName}`
 							: `Split removed — ${aName}`;
-					for (let si = 0; si < ar.splitTimes.length; si++) {
+					for (let si = 0; si < aPunched.length; si++) {
 						if (
-							br.splitTimes[si]?.time !== ar.splitTimes[si]?.time ||
-							br.splitTimes[si]?.controlCode !== ar.splitTimes[si]?.controlCode
+							bPunched[si]?.time !== aPunched[si]?.time ||
+							bPunched[si]?.controlCode !== aPunched[si]?.controlCode
 						)
 							return `Split updated — ${aName}`;
 					}
