@@ -32,6 +32,12 @@ jobs:
         env:
           BASE_PATH: /iof-list-manipulator/pr-${{ github.event.pull_request.number }}
 
+      # GitHub Pages serves 404.html for unmatched paths site-wide, so the
+      # root 404.html (production build) would be served instead of the preview.
+      # Adding index.html lets GitHub Pages find the preview as a directory index.
+      - name: Add index.html for subdirectory routing
+        run: cp build/404.html build/index.html
+
       - name: Deploy preview to gh-pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
