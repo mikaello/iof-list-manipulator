@@ -84,6 +84,12 @@ export interface SimpleCourse {
 	numberOfControls?: number;
 }
 
+export interface CourseControl {
+	code: string;
+	/** e.g. 'Normal', 'Start', 'Finish', 'ButterflyLoop' */
+	type?: string;
+}
+
 export interface Course {
 	id?: string;
 	name?: string;
@@ -91,6 +97,8 @@ export interface Course {
 	climb?: number;
 	numberOfControls?: number;
 	raceNumber?: number;
+	/** Explicit control sequence from <CourseControl> elements, if present in the source XML. */
+	courseControls?: CourseControl[];
 }
 
 // ---- Result types -------------------------------------------------------

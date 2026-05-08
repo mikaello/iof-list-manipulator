@@ -4,6 +4,7 @@ import {
 	type ClassResult,
 	type Country,
 	type Course,
+	type CourseControl,
 	type EventClass,
 	type EventDate,
 	type IofEvent,
@@ -243,6 +244,20 @@ function parseCourse(el: Element): Course {
 	if (noc !== undefined) course.numberOfControls = noc;
 	const rn = el.getAttribute('raceNumber');
 	if (rn) course.raceNumber = parseInt(rn, 10);
+
+	const ccEls = childEls(el, 'CourseControl');
+	if (ccEls.length > 0) {
+		const controls: CourseControl[] = [];
+		for (const cc of ccEls) {
+			const controlEl = childEl(cc, 'Control');
+			const code = controlEl ? childText(controlEl, 'Code') : undefined;
+			if (!code) continue;
+			const type = cc.getAttribute('type') ?? undefined;
+			controls.push({ code, ...(type ? { type } : {}) });
+		}
+		if (controls.length > 0) course.courseControls = controls;
+	}
+
 	return course;
 }
 

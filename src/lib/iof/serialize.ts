@@ -3,6 +3,7 @@ import {
 	IOF_NAMESPACE,
 	type ClassResult,
 	type Course,
+	type CourseControl,
 	type EventDate,
 	type Organisation,
 	type Person,
@@ -163,6 +164,20 @@ function serializeCourse(doc: Document, course: Course): Element {
 	if (course.climb !== undefined) e.appendChild(textEl(doc, 'Climb', course.climb));
 	if (course.numberOfControls !== undefined)
 		e.appendChild(textEl(doc, 'NumberOfControls', course.numberOfControls));
+	if (course.courseControls) {
+		for (const cc of course.courseControls) {
+			e.appendChild(serializeCourseControl(doc, cc));
+		}
+	}
+	return e;
+}
+
+function serializeCourseControl(doc: Document, cc: CourseControl): Element {
+	const e = el(doc, 'CourseControl');
+	if (cc.type) e.setAttribute('type', cc.type);
+	const controlEl = el(doc, 'Control');
+	controlEl.appendChild(textEl(doc, 'Code', cc.code));
+	e.appendChild(controlEl);
 	return e;
 }
 

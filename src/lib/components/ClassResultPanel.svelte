@@ -4,6 +4,7 @@
 	import { recalcPositions, removeControlFromResults } from '$lib/utils.js';
 	import PersonResultRow from './PersonResultRow.svelte';
 	import TeamResultPanel from './TeamResultPanel.svelte';
+	import ClassControlsPopover from './ClassControlsPopover.svelte';
 
 	interface Props {
 		classResult: ClassResult;
@@ -159,6 +160,9 @@
 				}}
 				class="min-w-0 rounded border border-transparent bg-transparent px-1 py-0.5 text-sm font-semibold text-gray-800 hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:text-gray-100 dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/20"
 			/>
+			{#if !isRelay}
+				<ClassControlsPopover classResult={cr} {classIndex} />
+			{/if}
 		</div>
 
 		{#if course}
