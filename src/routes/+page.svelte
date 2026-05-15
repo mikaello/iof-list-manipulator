@@ -2,6 +2,7 @@
 	import { appState } from '$lib/state.svelte.js';
 	import FileLoader from '$lib/components/FileLoader.svelte';
 	import ExportButton from '$lib/components/ExportButton.svelte';
+	import RenderButton from '$lib/components/RenderButton.svelte';
 	import EventHeader from '$lib/components/EventHeader.svelte';
 	import ClassResultPanel from '$lib/components/ClassResultPanel.svelte';
 	import ChangelogDialog from '$lib/components/ChangelogDialog.svelte';
@@ -61,6 +62,7 @@
 				<ExportButton
 					filename={rl.event.name.replace(/[^a-zA-Z0-9-_]/g, '_') + '.xml'}
 				/>
+				<RenderButton />
 
 				<button
 					type="button"
