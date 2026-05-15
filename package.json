@@ -34,6 +34,8 @@
     "xmllint-wasm": "5.2.0"
   },
   "dependencies": {
-    "fflate": "0.8.2"
+    "@picocss/pico": "2.1.1",
+    "fflate": "0.8.2",
+    "rankinglop-resultlist-generator": "file:../rankinglop-resultlist-generator"
   }
 }
