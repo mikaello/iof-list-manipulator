@@ -50,4 +50,15 @@ describe('renderResultListHtml', () => {
 		expect(html).not.toContain('Leiebrikker');
 		expect(html).not.toContain('Løpsrapport');
 	});
+
+	it("verifies round-trip: a runner present in the loaded XML survives serialise → renderer-parse", () => {
+		const rl = parseResultList(loadExample('result_list.xml'));
+		const someRunner = rl.classResults
+			.flatMap((cr) => cr.personResults)
+			.find((pr) => pr.results[0]?.status === 'OK' && pr.results[0]?.time !== undefined);
+		expect(someRunner, 'expected at least one finisher in the example XML').toBeDefined();
+		const name = `${someRunner!.person.name.given} ${someRunner!.person.name.family}`.trim();
+		const html = renderResultListHtml(rl);
+		expect(html).toContain(name);
+	});
 });
