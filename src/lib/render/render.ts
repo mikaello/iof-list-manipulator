@@ -1,4 +1,4 @@
-import { createGenericResultListHtmlFromXml } from 'rankinglop-resultlist-generator';
+import { createGenericResultListHtmlFromXml } from '@mikaello/rankinglop-resultlist-generator';
 import picoCSS from '@picocss/pico/css/pico.classless.min.css?inline';
 import type { ResultList } from '$lib/iof/types.js';
 import { serializeResultList } from '$lib/iof/serialize.js';
