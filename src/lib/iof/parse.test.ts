@@ -165,8 +165,12 @@ describe('Eventor extensions', () => {
 		expect(rl.event.eventorExtensions).toBeDefined();
 		expect(rl.event.eventorExtensions?.startListExists).toBe(true);
 		expect(rl.event.eventorExtensions?.resultListExists).toBe(true);
-		expect(rl.event.eventorExtensions?.discipline).toBe('Foot');
+		expect(rl.event.eventorExtensions?.disciplines).toEqual(['Foot', 'MountainBike']);
 		expect(rl.event.eventorExtensions?.lightCondition).toBe('Day');
+		expect(rl.event.eventorExtensions?.attributes).toEqual([
+			{ id: '2', value: 'Ukas løype' },
+			{ id: '3', value: 'Paratilbud' }
+		]);
 	});
 
 	it('omits eventorExtensions when no <Extensions> on the event', () => {
@@ -178,21 +182,32 @@ describe('Eventor extensions', () => {
 	it('round-trips Eventor extensions through parse → serialize → parse', () => {
 		const xml = loadExample('ResultList_eventor_extensions.xml');
 		const { reparsed } = parseAndReserialize(xml);
-		expect(reparsed.event.eventorExtensions?.discipline).toBe('Foot');
+		expect(reparsed.event.eventorExtensions?.disciplines).toEqual(['Foot', 'MountainBike']);
 		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('Day');
 		expect(reparsed.event.eventorExtensions?.startListExists).toBe(true);
 		expect(reparsed.event.eventorExtensions?.resultListExists).toBe(true);
+		expect(reparsed.event.eventorExtensions?.attributes).toEqual([
+			{ id: '2', value: 'Ukas løype' },
+			{ id: '3', value: 'Paratilbud' }
+		]);
 	});
 
-	it('reflects an edited Eventor discipline in re-parsed output', () => {
+	it('reflects edited disciplines, lightCondition and attribute values in re-parsed output', () => {
 		const xml = loadExample('ResultList_eventor_extensions.xml');
 		const model = parseResultList(xml);
 		if (!model.event.eventorExtensions) throw new Error('expected eventorExtensions');
-		model.event.eventorExtensions.discipline = 'MTB';
+		model.event.eventorExtensions.disciplines = ['Ski', 'Indoor'];
 		model.event.eventorExtensions.lightCondition = 'Night';
+		if (model.event.eventorExtensions.attributes) {
+			model.event.eventorExtensions.attributes[0].value = 'Edited attribute';
+		}
 		const output = serializeResultList(model);
 		const reparsed = parseResultList(output);
-		expect(reparsed.event.eventorExtensions?.discipline).toBe('MTB');
+		expect(reparsed.event.eventorExtensions?.disciplines).toEqual(['Ski', 'Indoor']);
 		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('Night');
+		expect(reparsed.event.eventorExtensions?.attributes?.[0]?.value).toBe('Edited attribute');
+		// Attribute id and the other attribute survive.
+		expect(reparsed.event.eventorExtensions?.attributes?.[0]?.id).toBe('2');
+		expect(reparsed.event.eventorExtensions?.attributes?.[1]?.value).toBe('Paratilbud');
 	});
 });

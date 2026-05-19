@@ -8,6 +8,7 @@ import {
 	type CourseControl,
 	type EventClass,
 	type EventDate,
+	type EventorAttribute,
 	type EventorExtensions,
 	type IofEvent,
 	type Organisation,
@@ -340,16 +341,34 @@ function parseEventorExtensions(eventEl: Element): EventorExtensions | undefined
 		if (t === undefined) return undefined;
 		return t === 'true' || t === 'True' || t === '1';
 	};
+	const collect = (name: string): Element[] => {
+		const els = extEl!.getElementsByTagNameNS(ns, name);
+		const out: Element[] = [];
+		for (let i = 0; i < els.length; i++) out.push(els[i]);
+		return out;
+	};
 
 	const ext: EventorExtensions = {};
 	const startListExists = bool('StartListExists');
 	if (startListExists !== undefined) ext.startListExists = startListExists;
 	const resultListExists = bool('ResultListExists');
 	if (resultListExists !== undefined) ext.resultListExists = resultListExists;
-	const discipline = text('Discipline');
-	if (discipline) ext.discipline = discipline;
+
+	const disciplines = collect('Discipline')
+		.map((el) => el.textContent?.trim() ?? '')
+		.filter((s) => s !== '');
+	if (disciplines.length > 0) ext.disciplines = disciplines;
+
 	const lightCondition = text('LightCondition');
 	if (lightCondition) ext.lightCondition = lightCondition;
+
+	const attributes: EventorAttribute[] = collect('Attribute')
+		.map((el): EventorAttribute => ({
+			id: el.getAttribute('id') ?? '',
+			value: el.textContent?.trim() ?? ''
+		}))
+		.filter((a) => a.value !== '');
+	if (attributes.length > 0) ext.attributes = attributes;
 
 	return Object.keys(ext).length > 0 ? ext : undefined;
 }

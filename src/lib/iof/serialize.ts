@@ -215,23 +215,39 @@ function serializeEventorExtensions(
 	ext: EventorExtensions
 ): Element | null {
 	const ns = EVENTOR_EXTENSIONS_NAMESPACE;
-	const fields: Array<[string, string | undefined]> = [
-		['StartListExists', ext.startListExists === undefined ? undefined : ext.startListExists ? 'true' : 'false'],
-		['ResultListExists', ext.resultListExists === undefined ? undefined : ext.resultListExists ? 'true' : 'false'],
-		['Discipline', ext.discipline],
-		['LightCondition', ext.lightCondition]
-	];
-	const present = fields.filter(([, v]) => v !== undefined && v !== '');
-	if (present.length === 0) return null;
+	const hasContent =
+		ext.startListExists !== undefined ||
+		ext.resultListExists !== undefined ||
+		ext.lightCondition ||
+		(ext.disciplines && ext.disciplines.length > 0) ||
+		(ext.attributes && ext.attributes.length > 0);
+	if (!hasContent) return null;
 
 	// Declare xmlns:eventor on the root so the eventor: prefix resolves.
 	root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:eventor', ns);
 
 	const extEl = el(doc, 'Extensions');
-	for (const [name, value] of present) {
+	const appendText = (name: string, value: string) => {
 		const child = doc.createElementNS(ns, `eventor:${name}`);
-		child.textContent = value as string;
+		child.textContent = value;
 		extEl.appendChild(child);
+	};
+	if (ext.startListExists !== undefined) appendText('StartListExists', ext.startListExists ? 'true' : 'false');
+	if (ext.resultListExists !== undefined) appendText('ResultListExists', ext.resultListExists ? 'true' : 'false');
+	if (ext.disciplines) {
+		for (const d of ext.disciplines) {
+			if (d !== '') appendText('Discipline', d);
+		}
+	}
+	if (ext.lightCondition) appendText('LightCondition', ext.lightCondition);
+	if (ext.attributes) {
+		for (const attr of ext.attributes) {
+			if (attr.value === '') continue;
+			const child = doc.createElementNS(ns, 'eventor:Attribute');
+			child.setAttribute('id', attr.id);
+			child.textContent = attr.value;
+			extEl.appendChild(child);
+		}
 	}
 	return extEl;
 }

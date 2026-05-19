@@ -174,6 +174,18 @@ export interface EventDate {
 }
 
 /**
+ * A custom Eventor event attribute (`<eventor:Attribute id="N">value</eventor:Attribute>`).
+ * The set of attributes is instance-specific — the Norwegian Eventor
+ * exposes e.g. `Ukas løype`, `Paratilbud`, `Flexoløp`.
+ */
+export interface EventorAttribute {
+	/** Numeric attribute id as a string, preserving the wire format. */
+	id: string;
+	/** Human-readable attribute name. */
+	value: string;
+}
+
+/**
  * Eventor-specific data carried in IOF XML 3.0 <Extensions> elements
  * emitted by the Eventor REST API's /.../iofxml endpoints. Namespace:
  * http://eventor.orientering.se/iofxmlextensions.
@@ -187,10 +199,16 @@ export interface EventorExtensions {
 	startListExists?: boolean;
 	/** `<eventor:ResultListExists>` — has a result list been published? */
 	resultListExists?: boolean;
-	/** `<eventor:Discipline>` — Foot, MTB, Ski, Trail, PreO, TempO. */
-	discipline?: string;
-	/** `<eventor:LightCondition>` — Day, Night, DayAndNight. */
+	/**
+	 * `<eventor:Discipline>` — repeatable. Real values seen in the wild:
+	 * `Foot`, `MountainBike`, `Ski`, `Trail`, `Indoor`. An event/race
+	 * that accommodates multiple disciplines lists each one separately.
+	 */
+	disciplines?: string[];
+	/** `<eventor:LightCondition>` — `Day`, `Night`, `DayAndNight`. */
 	lightCondition?: string;
+	/** Zero or more `<eventor:Attribute id="N">value</eventor:Attribute>` entries. */
+	attributes?: EventorAttribute[];
 }
 
 export const EVENTOR_EXTENSIONS_NAMESPACE =

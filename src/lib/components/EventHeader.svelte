@@ -89,18 +89,21 @@
 				Eventor extensions
 			</summary>
 			<div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
-				<label class="flex items-center justify-between gap-2">
-					<span class="text-gray-700 dark:text-slate-300">Discipline</span>
+				<label class="flex items-center justify-between gap-2 sm:col-span-2">
+					<span class="text-gray-700 dark:text-slate-300">Disciplines</span>
 					<input
 						type="text"
-						value={event.eventorExtensions.discipline ?? ''}
+						value={(event.eventorExtensions.disciplines ?? []).join(', ')}
 						oninput={(e) => {
 							if (!event.eventorExtensions) return;
-							const v = (e.target as HTMLInputElement).value.trim();
-							event.eventorExtensions.discipline = v === '' ? undefined : v;
+							const list = (e.target as HTMLInputElement).value
+								.split(',')
+								.map((s) => s.trim())
+								.filter((s) => s !== '');
+							event.eventorExtensions.disciplines = list.length > 0 ? list : undefined;
 							appState.markDirty();
 						}}
-						placeholder="Foot / MTB / Ski / Trail / PreO / TempO"
+						placeholder="Foot, MountainBike, Ski, Trail, Indoor"
 						class="flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-right hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/40"
 					/>
 				</label>
@@ -146,6 +149,32 @@
 					/>
 				</label>
 			</div>
+			{#if event.eventorExtensions.attributes && event.eventorExtensions.attributes.length > 0}
+				<div class="mt-3">
+					<div class="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-slate-400">
+						Custom attributes
+					</div>
+					<ul class="space-y-1 text-sm">
+						{#each event.eventorExtensions.attributes as attr, i (i)}
+							<li class="flex items-center gap-2">
+								<span class="w-8 shrink-0 text-right text-xs text-gray-500 dark:text-slate-500">#{attr.id}</span>
+								<input
+									type="text"
+									value={attr.value}
+									oninput={(e) => {
+										if (!event.eventorExtensions?.attributes) return;
+										event.eventorExtensions.attributes[i].value = (
+											e.target as HTMLInputElement
+										).value;
+										appState.markDirty();
+									}}
+									class="flex-1 rounded border border-transparent bg-transparent px-2 py-1 hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/40"
+								/>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 			<p class="mt-2 text-xs text-gray-500 dark:text-slate-400">
 				Loaded from <code class="font-mono">&lt;Extensions&gt;</code> under the
 				Eventor namespace

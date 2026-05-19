@@ -29,7 +29,10 @@
       <eventor:StartListExists>true</eventor:StartListExists>
       <eventor:ResultListExists>true</eventor:ResultListExists>
       <eventor:Discipline>Foot</eventor:Discipline>
+      <eventor:Discipline>MountainBike</eventor:Discipline>
       <eventor:LightCondition>Day</eventor:LightCondition>
+      <eventor:Attribute id="2">Ukas løype</eventor:Attribute>
+      <eventor:Attribute id="3">Paratilbud</eventor:Attribute>
     </Extensions>
   </Event>
   <ClassResult>
