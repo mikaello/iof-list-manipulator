@@ -173,11 +173,36 @@ export interface EventDate {
 	time?: string;
 }
 
+/**
+ * Eventor-specific data carried in IOF XML 3.0 <Extensions> elements
+ * emitted by the Eventor REST API's /.../iofxml endpoints. Namespace:
+ * http://eventor.orientering.se/iofxmlextensions.
+ *
+ * Today we round-trip the Event-level extension fields only; per-race
+ * extensions are not yet modelled because the rest of the type system
+ * does not surface <Race> either.
+ */
+export interface EventorExtensions {
+	/** `<eventor:StartListExists>` — has a start list been published? */
+	startListExists?: boolean;
+	/** `<eventor:ResultListExists>` — has a result list been published? */
+	resultListExists?: boolean;
+	/** `<eventor:Discipline>` — Foot, MTB, Ski, Trail, PreO, TempO. */
+	discipline?: string;
+	/** `<eventor:LightCondition>` — Day, Night, DayAndNight. */
+	lightCondition?: string;
+}
+
+export const EVENTOR_EXTENSIONS_NAMESPACE =
+	'http://eventor.orientering.se/iofxmlextensions';
+
 export interface IofEvent {
 	id?: string;
 	name: string;
 	startTime?: EventDate;
 	endTime?: EventDate;
+	/** Eventor-specific data from a top-level <Extensions> element, if any. */
+	eventorExtensions?: EventorExtensions;
 }
 
 // ---- Top-level document -------------------------------------------------

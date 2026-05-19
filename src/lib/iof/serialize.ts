@@ -1,10 +1,12 @@
 // IOF XML 3.0 serializer — typed model → IOF XML string
 import {
+	EVENTOR_EXTENSIONS_NAMESPACE,
 	IOF_NAMESPACE,
 	type ClassResult,
 	type Course,
 	type CourseControl,
 	type EventDate,
+	type EventorExtensions,
 	type Organisation,
 	type Person,
 	type PersonRaceResult,
@@ -202,6 +204,38 @@ function serializeClassResult(doc: Document, cr: ClassResult): Element {
 	return e;
 }
 
+/**
+ * Build an <Extensions> element containing Eventor-namespaced fields.
+ * Declares the eventor: prefix on the ResultList root so the resulting
+ * document is self-contained.
+ */
+function serializeEventorExtensions(
+	doc: Document,
+	root: Element,
+	ext: EventorExtensions
+): Element | null {
+	const ns = EVENTOR_EXTENSIONS_NAMESPACE;
+	const fields: Array<[string, string | undefined]> = [
+		['StartListExists', ext.startListExists === undefined ? undefined : ext.startListExists ? 'true' : 'false'],
+		['ResultListExists', ext.resultListExists === undefined ? undefined : ext.resultListExists ? 'true' : 'false'],
+		['Discipline', ext.discipline],
+		['LightCondition', ext.lightCondition]
+	];
+	const present = fields.filter(([, v]) => v !== undefined && v !== '');
+	if (present.length === 0) return null;
+
+	// Declare xmlns:eventor on the root so the eventor: prefix resolves.
+	root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:eventor', ns);
+
+	const extEl = el(doc, 'Extensions');
+	for (const [name, value] of present) {
+		const child = doc.createElementNS(ns, `eventor:${name}`);
+		child.textContent = value as string;
+		extEl.appendChild(child);
+	}
+	return extEl;
+}
+
 function serializeEventDate(doc: Document, tagName: string, ed: EventDate): Element {
 	const e = el(doc, tagName);
 	e.appendChild(textEl(doc, 'Date', ed.date));
@@ -233,6 +267,10 @@ export function serializeResultList(rl: ResultList): string {
 		eventEl.appendChild(serializeEventDate(doc, 'StartTime', rl.event.startTime));
 	if (rl.event.endTime)
 		eventEl.appendChild(serializeEventDate(doc, 'EndTime', rl.event.endTime));
+	if (rl.event.eventorExtensions) {
+		const extEl = serializeEventorExtensions(doc, root, rl.event.eventorExtensions);
+		if (extEl) eventEl.appendChild(extEl);
+	}
 	root.appendChild(eventEl);
 
 	for (const cr of rl.classResults) {

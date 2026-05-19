@@ -1,5 +1,6 @@
 // IOF XML 3.0 parser — DOM-based, preserves round-trip fidelity
 import {
+	EVENTOR_EXTENSIONS_NAMESPACE,
 	IOF_NAMESPACE,
 	type ClassResult,
 	type Country,
@@ -7,6 +8,7 @@ import {
 	type CourseControl,
 	type EventClass,
 	type EventDate,
+	type EventorExtensions,
 	type IofEvent,
 	type Organisation,
 	type Person,
@@ -312,7 +314,44 @@ function parseEvent(el: Element): IofEvent {
 			childEl(endEl, 'Time')
 		);
 	}
+	const eventorExt = parseEventorExtensions(el);
+	if (eventorExt) event.eventorExtensions = eventorExt;
 	return event;
+}
+
+function parseEventorExtensions(eventEl: Element): EventorExtensions | undefined {
+	// Look at direct-child <Extensions> only — nested <Race><Extensions> would
+	// otherwise leak into the event-level read.
+	const extEls = eventEl.getElementsByTagNameNS(IOF_NAMESPACE, 'Extensions');
+	let extEl: Element | undefined;
+	for (let i = 0; i < extEls.length; i++) {
+		if (extEls[i].parentElement === eventEl) {
+			extEl = extEls[i];
+			break;
+		}
+	}
+	if (!extEl) return undefined;
+
+	const ns = EVENTOR_EXTENSIONS_NAMESPACE;
+	const text = (name: string) =>
+		extEl!.getElementsByTagNameNS(ns, name)[0]?.textContent?.trim() || undefined;
+	const bool = (name: string) => {
+		const t = text(name);
+		if (t === undefined) return undefined;
+		return t === 'true' || t === 'True' || t === '1';
+	};
+
+	const ext: EventorExtensions = {};
+	const startListExists = bool('StartListExists');
+	if (startListExists !== undefined) ext.startListExists = startListExists;
+	const resultListExists = bool('ResultListExists');
+	if (resultListExists !== undefined) ext.resultListExists = resultListExists;
+	const discipline = text('Discipline');
+	if (discipline) ext.discipline = discipline;
+	const lightCondition = text('LightCondition');
+	if (lightCondition) ext.lightCondition = lightCondition;
+
+	return Object.keys(ext).length > 0 ? ext : undefined;
 }
 
 // ---- public API ---------------------------------------------------------

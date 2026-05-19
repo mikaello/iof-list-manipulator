@@ -82,4 +82,76 @@
 			</span>
 		{/if}
 	</div>
+
+	{#if event.eventorExtensions}
+		<details class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50/40 p-3 dark:border-indigo-900/60 dark:bg-indigo-950/20">
+			<summary class="cursor-pointer text-xs font-semibold uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+				Eventor extensions
+			</summary>
+			<div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
+				<label class="flex items-center justify-between gap-2">
+					<span class="text-gray-700 dark:text-slate-300">Discipline</span>
+					<input
+						type="text"
+						value={event.eventorExtensions.discipline ?? ''}
+						oninput={(e) => {
+							if (!event.eventorExtensions) return;
+							const v = (e.target as HTMLInputElement).value.trim();
+							event.eventorExtensions.discipline = v === '' ? undefined : v;
+							appState.markDirty();
+						}}
+						placeholder="Foot / MTB / Ski / Trail / PreO / TempO"
+						class="flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-right hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/40"
+					/>
+				</label>
+				<label class="flex items-center justify-between gap-2">
+					<span class="text-gray-700 dark:text-slate-300">Light condition</span>
+					<input
+						type="text"
+						value={event.eventorExtensions.lightCondition ?? ''}
+						oninput={(e) => {
+							if (!event.eventorExtensions) return;
+							const v = (e.target as HTMLInputElement).value.trim();
+							event.eventorExtensions.lightCondition = v === '' ? undefined : v;
+							appState.markDirty();
+						}}
+						placeholder="Day / Night / DayAndNight"
+						class="flex-1 rounded border border-transparent bg-transparent px-2 py-1 text-right hover:border-gray-300 focus:border-indigo-400 focus:bg-indigo-50/50 focus:outline-none dark:hover:border-slate-600 dark:focus:border-indigo-500 dark:focus:bg-indigo-950/40"
+					/>
+				</label>
+				<label class="flex items-center justify-between gap-2">
+					<span class="text-gray-700 dark:text-slate-300">Start list exists</span>
+					<input
+						type="checkbox"
+						checked={event.eventorExtensions.startListExists === true}
+						onchange={(e) => {
+							if (!event.eventorExtensions) return;
+							event.eventorExtensions.startListExists = (e.target as HTMLInputElement).checked;
+							appState.markDirty();
+						}}
+						class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+					/>
+				</label>
+				<label class="flex items-center justify-between gap-2">
+					<span class="text-gray-700 dark:text-slate-300">Result list exists</span>
+					<input
+						type="checkbox"
+						checked={event.eventorExtensions.resultListExists === true}
+						onchange={(e) => {
+							if (!event.eventorExtensions) return;
+							event.eventorExtensions.resultListExists = (e.target as HTMLInputElement).checked;
+							appState.markDirty();
+						}}
+						class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+					/>
+				</label>
+			</div>
+			<p class="mt-2 text-xs text-gray-500 dark:text-slate-400">
+				Loaded from <code class="font-mono">&lt;Extensions&gt;</code> under the
+				Eventor namespace
+				(<code class="font-mono">http://eventor.orientering.se/iofxmlextensions</code>).
+				Changes round-trip through export.
+			</p>
+		</details>
+	{/if}
 </header>

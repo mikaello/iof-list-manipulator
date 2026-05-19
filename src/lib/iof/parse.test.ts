@@ -157,3 +157,42 @@ describe('model mutations preserved through serialize', () => {
 		expect(reparsed.classResults[0].personResults[0].results[0].splitTimes.length).toBe(originalCount + 1);
 	});
 });
+
+describe('Eventor extensions', () => {
+	it('parses event-level Eventor extensions', () => {
+		const xml = loadExample('ResultList_eventor_extensions.xml');
+		const rl = parseResultList(xml);
+		expect(rl.event.eventorExtensions).toBeDefined();
+		expect(rl.event.eventorExtensions?.startListExists).toBe(true);
+		expect(rl.event.eventorExtensions?.resultListExists).toBe(true);
+		expect(rl.event.eventorExtensions?.discipline).toBe('Foot');
+		expect(rl.event.eventorExtensions?.lightCondition).toBe('Day');
+	});
+
+	it('omits eventorExtensions when no <Extensions> on the event', () => {
+		const xml = loadExample('result_list.xml');
+		const rl = parseResultList(xml);
+		expect(rl.event.eventorExtensions).toBeUndefined();
+	});
+
+	it('round-trips Eventor extensions through parse → serialize → parse', () => {
+		const xml = loadExample('ResultList_eventor_extensions.xml');
+		const { reparsed } = parseAndReserialize(xml);
+		expect(reparsed.event.eventorExtensions?.discipline).toBe('Foot');
+		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('Day');
+		expect(reparsed.event.eventorExtensions?.startListExists).toBe(true);
+		expect(reparsed.event.eventorExtensions?.resultListExists).toBe(true);
+	});
+
+	it('reflects an edited Eventor discipline in re-parsed output', () => {
+		const xml = loadExample('ResultList_eventor_extensions.xml');
+		const model = parseResultList(xml);
+		if (!model.event.eventorExtensions) throw new Error('expected eventorExtensions');
+		model.event.eventorExtensions.discipline = 'MTB';
+		model.event.eventorExtensions.lightCondition = 'Night';
+		const output = serializeResultList(model);
+		const reparsed = parseResultList(output);
+		expect(reparsed.event.eventorExtensions?.discipline).toBe('MTB');
+		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('Night');
+	});
+});
