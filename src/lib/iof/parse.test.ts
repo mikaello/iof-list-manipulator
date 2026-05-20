@@ -165,8 +165,14 @@ describe('Eventor extensions', () => {
 		expect(rl.event.eventorExtensions).toBeDefined();
 		expect(rl.event.eventorExtensions?.startListExists).toBe(true);
 		expect(rl.event.eventorExtensions?.resultListExists).toBe(true);
-		expect(rl.event.eventorExtensions?.disciplines).toEqual(['Foot', 'MountainBike']);
-		expect(rl.event.eventorExtensions?.lightCondition).toBe('Day');
+		expect(rl.event.eventorExtensions?.disciplines).toEqual([
+			'Foot',
+			'MountainBike',
+			'Ski',
+			'Trail',
+			'Indoor'
+		]);
+		expect(rl.event.eventorExtensions?.lightCondition).toBe('DayAndNight');
 		expect(rl.event.eventorExtensions?.attributes).toEqual([
 			{ id: '2', value: 'Ukas løype' },
 			{ id: '3', value: 'Paratilbud' }
@@ -182,8 +188,14 @@ describe('Eventor extensions', () => {
 	it('round-trips Eventor extensions through parse → serialize → parse', () => {
 		const xml = loadExample('ResultList_eventor_extensions.xml');
 		const { reparsed } = parseAndReserialize(xml);
-		expect(reparsed.event.eventorExtensions?.disciplines).toEqual(['Foot', 'MountainBike']);
-		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('Day');
+		expect(reparsed.event.eventorExtensions?.disciplines).toEqual([
+			'Foot',
+			'MountainBike',
+			'Ski',
+			'Trail',
+			'Indoor'
+		]);
+		expect(reparsed.event.eventorExtensions?.lightCondition).toBe('DayAndNight');
 		expect(reparsed.event.eventorExtensions?.startListExists).toBe(true);
 		expect(reparsed.event.eventorExtensions?.resultListExists).toBe(true);
 		expect(reparsed.event.eventorExtensions?.attributes).toEqual([

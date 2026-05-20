@@ -30,7 +30,10 @@
       <eventor:ResultListExists>true</eventor:ResultListExists>
       <eventor:Discipline>Foot</eventor:Discipline>
       <eventor:Discipline>MountainBike</eventor:Discipline>
-      <eventor:LightCondition>Day</eventor:LightCondition>
+      <eventor:Discipline>Ski</eventor:Discipline>
+      <eventor:Discipline>Trail</eventor:Discipline>
+      <eventor:Discipline>Indoor</eventor:Discipline>
+      <eventor:LightCondition>DayAndNight</eventor:LightCondition>
       <eventor:Attribute id="2">Ukas løype</eventor:Attribute>
       <eventor:Attribute id="3">Paratilbud</eventor:Attribute>
     </Extensions>
