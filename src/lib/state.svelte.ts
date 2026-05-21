@@ -191,6 +191,7 @@ export const appState = (() => {
 	let parseError = $state<string | null>(null);
 	let isDirty = $state(false);
 	let rawXml = $state<string | null>(null);
+	let fileName = $state<string | null>(null);
 
 	// Undo/redo stacks hold serialized snapshots
 	let past = $state<string[]>([]); // [oldest, ..., most recent before current]
@@ -237,6 +238,9 @@ export const appState = (() => {
 		get rawXml() {
 			return rawXml;
 		},
+		get fileName() {
+			return fileName;
+		},
 		get canUndo() {
 			return past.length > 0;
 		},
@@ -246,21 +250,23 @@ export const appState = (() => {
 		get changeLog(): HistoryEntry[] {
 			return changeLog;
 		},
-		setResultList(rl: ResultList, xml?: string) {
+		setResultList(rl: ResultList, xml?: string, name?: string) {
 			resultList = rl;
 			parseError = null;
 			isDirty = false;
 			past = [];
 			future = [];
 			rawXml = xml ?? null;
+			fileName = name ?? null;
 			committed = JSON.stringify(rl);
-			addLog(`Loaded: ${rl.event.name}`, 'load');
+			addLog(`Loaded: ${rl.event.name}${name ? ` (${name})` : ''}`, 'load');
 		},
 		setParseError(msg: string) {
 			parseError = msg;
 			resultList = null;
 			isDirty = false;
 			rawXml = null;
+			fileName = null;
 			past = [];
 			future = [];
 		},
@@ -313,6 +319,7 @@ export const appState = (() => {
 			parseError = null;
 			isDirty = false;
 			rawXml = null;
+			fileName = null;
 			past = [];
 			future = [];
 			changeLog = [];

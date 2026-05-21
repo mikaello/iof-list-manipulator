@@ -12,9 +12,9 @@
 	let inputEl: HTMLInputElement;
 	let dragOver = $state(false);
 
-	function parseXml(xml: string) {
+	function parseXml(xml: string, name: string) {
 		try {
-			appState.setResultList(parseResultList(xml), xml);
+			appState.setResultList(parseResultList(xml), xml, name);
 		} catch (e) {
 			appState.setParseError(e instanceof Error ? e.message : String(e));
 		}
@@ -55,7 +55,9 @@
 						appState.setParseError('No .xml file found inside the zip archive.');
 						return;
 					}
-					parseXml(decodeXmlBytes(entries[xmlKey]));
+					// Show the inner XML's own name — more descriptive than the zip's.
+					const innerName = xmlKey.split('/').pop() || xmlKey;
+					parseXml(decodeXmlBytes(entries[xmlKey]), `${file.name} › ${innerName}`);
 				} catch (e) {
 					appState.setParseError(e instanceof Error ? e.message : String(e));
 				}
@@ -64,7 +66,7 @@
 			reader.readAsArrayBuffer(file);
 		} else {
 			reader.onload = () => {
-				parseXml(decodeXmlBytes(new Uint8Array(reader.result as ArrayBuffer)));
+				parseXml(decodeXmlBytes(new Uint8Array(reader.result as ArrayBuffer)), file.name);
 				inputEl.value = '';
 			};
 			reader.readAsArrayBuffer(file);
