@@ -27,6 +27,17 @@
 			/>
 
 			<div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
+				{#if appState.fileName}
+					<div class="flex min-w-0 items-center gap-1" title={appState.fileName}>
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						<span class="truncate font-mono text-xs">{appState.fileName}</span>
+					</div>
+					{#if event.startTime || event.endTime}
+						<span class="text-gray-300 dark:text-slate-600" aria-hidden="true">·</span>
+					{/if}
+				{/if}
 				{#if event.startTime}
 					<div class="flex items-center gap-1">
 						<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
