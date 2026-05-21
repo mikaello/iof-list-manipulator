@@ -1,6 +1,6 @@
 // Global application state using Svelte 5 runes
 import { SvelteDate } from 'svelte/reactivity';
-import type { ResultList } from '$lib/iof/types.js';
+import type { EventorExtensions, ResultList } from '$lib/iof/types.js';
 
 const MAX_HISTORY = 50;
 
@@ -13,12 +13,51 @@ export interface HistoryEntry {
 }
 
 // ── Diff helper ────────────────────────────────────────────────────────────
-function describeChange(beforeJson: string, afterJson: string): string {
+function describeEventorExtensionsChange(
+	before: EventorExtensions | undefined,
+	after: EventorExtensions | undefined
+): string | undefined {
+	const b = before ?? {};
+	const a = after ?? {};
+
+	if ((b.disciplines ?? []).join('\0') !== (a.disciplines ?? []).join('\0')) {
+		const list = (a.disciplines ?? []).join(', ');
+		return list ? `Disciplines → ${list}` : 'Disciplines cleared';
+	}
+	if ((b.lightCondition ?? '') !== (a.lightCondition ?? '')) {
+		return a.lightCondition ? `Light condition → ${a.lightCondition}` : 'Light condition cleared';
+	}
+	if (b.startListExists !== a.startListExists) {
+		return `Start list exists → ${a.startListExists ? 'yes' : 'no'}`;
+	}
+	if (b.resultListExists !== a.resultListExists) {
+		return `Result list exists → ${a.resultListExists ? 'yes' : 'no'}`;
+	}
+	const bAttrs = b.attributes ?? [];
+	const aAttrs = a.attributes ?? [];
+	if (JSON.stringify(bAttrs) !== JSON.stringify(aAttrs)) {
+		for (let i = 0; i < aAttrs.length; i++) {
+			if (!bAttrs[i] || bAttrs[i].value !== aAttrs[i].value) {
+				return `Attribute updated — ${aAttrs[i].value || `#${aAttrs[i].id}`}`;
+			}
+		}
+		return 'Attributes updated';
+	}
+	return undefined;
+}
+
+export function describeChange(beforeJson: string, afterJson: string): string {
 	try {
 		const b = JSON.parse(beforeJson) as ResultList;
 		const a = JSON.parse(afterJson) as ResultList;
 
 		if (b.event.name !== a.event.name) return `Event renamed → "${a.event.name}"`;
+
+		const extLabel = describeEventorExtensionsChange(
+			b.event.eventorExtensions,
+			a.event.eventorExtensions
+		);
+		if (extLabel) return extLabel;
 
 		if (b.classResults.length !== a.classResults.length) {
 			return a.classResults.length > b.classResults.length ? 'Class added' : 'Class removed';
@@ -45,9 +84,9 @@ function describeChange(beforeJson: string, afterJson: string): string {
 			const fromClass = b.classResults[lostIdx].class.name;
 			const toClass = a.classResults[gainedIdx].class.name;
 			// Find the person who appeared in the gaining class
-			const bKeys = new Set(b.classResults[gainedIdx].personResults.map(personKey));
+			const bKeys = b.classResults[gainedIdx].personResults.map(personKey);
 			const movedPerson = a.classResults[gainedIdx].personResults.find(
-				(p) => !bKeys.has(personKey(p))
+				(p) => !bKeys.includes(personKey(p))
 			);
 			const name = movedPerson
 				? `${movedPerson.person.name.given} ${movedPerson.person.name.family}`.trim()

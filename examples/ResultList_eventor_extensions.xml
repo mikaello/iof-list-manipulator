@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ResultList mirroring what Eventor's /results/event/iofxml endpoint
+  returns: standard IOF XML 3.0 with Eventor-specific data carried in
+  <Extensions> elements under the namespace
+  http://eventor.orientering.se/iofxmlextensions.
+
+  Names, IDs, organisations and times are hand-crafted — no real
+  persons, clubs or events.
+-->
+<ResultList xmlns:eventor="http://eventor.orientering.se/iofxmlextensions"
+            xmlns="http://www.orienteering.org/datastandard/3.0"
+            iofVersion="3.0"
+            createTime="2024-05-15T19:00:00Z"
+            creator="Eventor"
+            status="Complete">
+  <Event>
+    <Id type="Eventor">evt-100</Id>
+    <Name>Example Sprint Cup</Name>
+    <StartTime>
+      <Date>2024-05-15</Date>
+      <Time>17:00:00Z</Time>
+    </StartTime>
+    <EndTime>
+      <Date>2024-05-15</Date>
+      <Time>19:00:00Z</Time>
+    </EndTime>
+    <Extensions>
+      <eventor:StartListExists>true</eventor:StartListExists>
+      <eventor:ResultListExists>true</eventor:ResultListExists>
+      <eventor:Discipline>Foot</eventor:Discipline>
+      <eventor:Discipline>MountainBike</eventor:Discipline>
+      <eventor:Discipline>Ski</eventor:Discipline>
+      <eventor:Discipline>Trail</eventor:Discipline>
+      <eventor:Discipline>Indoor</eventor:Discipline>
+      <eventor:LightCondition>DayAndNight</eventor:LightCondition>
+      <eventor:Attribute id="2">Ukas løype</eventor:Attribute>
+      <eventor:Attribute id="3">Paratilbud</eventor:Attribute>
+    </Extensions>
+  </Event>
+  <ClassResult>
+    <Class>
+      <Id>1</Id>
+      <Name>Open Sprint</Name>
+    </Class>
+    <Course>
+      <Length>2400</Length>
+    </Course>
+    <PersonResult>
+      <Person sex="F">
+        <Id>1001</Id>
+        <Name>
+          <Family>Example</Family>
+          <Given>Anna</Given>
+        </Name>
+      </Person>
+      <Organisation>
+        <Id>500</Id>
+        <Name>Example Forest Runners</Name>
+        <Country code="NOR">Norway</Country>
+      </Organisation>
+      <Result>
+        <BibNumber>1</BibNumber>
+        <StartTime>2024-05-15T17:00:00Z</StartTime>
+        <FinishTime>2024-05-15T17:15:30Z</FinishTime>
+        <Time>930</Time>
+        <Position>1</Position>
+        <Status>OK</Status>
+      </Result>
+    </PersonResult>
+    <PersonResult>
+      <Person sex="M">
+        <Id>1002</Id>
+        <Name>
+          <Family>Sample</Family>
+          <Given>Bob</Given>
+        </Name>
+      </Person>
+      <Organisation>
+        <Id>501</Id>
+        <Name>Demo Athletics</Name>
+        <Country code="NOR">Norway</Country>
+      </Organisation>
+      <Result>
+        <BibNumber>2</BibNumber>
+        <StartTime>2024-05-15T17:02:00Z</StartTime>
+        <FinishTime>2024-05-15T17:19:20Z</FinishTime>
+        <Time>1040</Time>
+        <Position>2</Position>
+        <Status>OK</Status>
+      </Result>
+    </PersonResult>
+  </ClassResult>
+</ResultList>

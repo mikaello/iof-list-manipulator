@@ -1,10 +1,12 @@
 // IOF XML 3.0 serializer — typed model → IOF XML string
 import {
+	EVENTOR_EXTENSIONS_NAMESPACE,
 	IOF_NAMESPACE,
 	type ClassResult,
 	type Course,
 	type CourseControl,
 	type EventDate,
+	type EventorExtensions,
 	type Organisation,
 	type Person,
 	type PersonRaceResult,
@@ -202,6 +204,54 @@ function serializeClassResult(doc: Document, cr: ClassResult): Element {
 	return e;
 }
 
+/**
+ * Build an <Extensions> element containing Eventor-namespaced fields.
+ * Declares the eventor: prefix on the ResultList root so the resulting
+ * document is self-contained.
+ */
+function serializeEventorExtensions(
+	doc: Document,
+	root: Element,
+	ext: EventorExtensions
+): Element | null {
+	const ns = EVENTOR_EXTENSIONS_NAMESPACE;
+	const hasContent =
+		ext.startListExists !== undefined ||
+		ext.resultListExists !== undefined ||
+		ext.lightCondition ||
+		(ext.disciplines && ext.disciplines.length > 0) ||
+		(ext.attributes && ext.attributes.length > 0);
+	if (!hasContent) return null;
+
+	// Declare xmlns:eventor on the root so the eventor: prefix resolves.
+	root.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:eventor', ns);
+
+	const extEl = el(doc, 'Extensions');
+	const appendText = (name: string, value: string) => {
+		const child = doc.createElementNS(ns, `eventor:${name}`);
+		child.textContent = value;
+		extEl.appendChild(child);
+	};
+	if (ext.startListExists !== undefined) appendText('StartListExists', ext.startListExists ? 'true' : 'false');
+	if (ext.resultListExists !== undefined) appendText('ResultListExists', ext.resultListExists ? 'true' : 'false');
+	if (ext.disciplines) {
+		for (const d of ext.disciplines) {
+			if (d !== '') appendText('Discipline', d);
+		}
+	}
+	if (ext.lightCondition) appendText('LightCondition', ext.lightCondition);
+	if (ext.attributes) {
+		for (const attr of ext.attributes) {
+			if (attr.value === '') continue;
+			const child = doc.createElementNS(ns, 'eventor:Attribute');
+			child.setAttribute('id', attr.id);
+			child.textContent = attr.value;
+			extEl.appendChild(child);
+		}
+	}
+	return extEl;
+}
+
 function serializeEventDate(doc: Document, tagName: string, ed: EventDate): Element {
 	const e = el(doc, tagName);
 	e.appendChild(textEl(doc, 'Date', ed.date));
@@ -233,6 +283,10 @@ export function serializeResultList(rl: ResultList): string {
 		eventEl.appendChild(serializeEventDate(doc, 'StartTime', rl.event.startTime));
 	if (rl.event.endTime)
 		eventEl.appendChild(serializeEventDate(doc, 'EndTime', rl.event.endTime));
+	if (rl.event.eventorExtensions) {
+		const extEl = serializeEventorExtensions(doc, root, rl.event.eventorExtensions);
+		if (extEl) eventEl.appendChild(extEl);
+	}
 	root.appendChild(eventEl);
 
 	for (const cr of rl.classResults) {
