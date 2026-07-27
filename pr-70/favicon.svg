@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Orienteering control circle (outer) -->
+  <circle cx="16" cy="16" r="15" fill="#ea580c" stroke="none"/>
+  <!-- Orienteering control circle (inner ring, white) -->
+  <circle cx="16" cy="16" r="11.5" fill="none" stroke="white" stroke-width="2"/>
+
+  <!-- Podium / ranking bars (white) representing a result list -->
+  <!-- Bar 1 (gold / 1st place, centre, tallest) -->
+  <rect x="13" y="10" width="6" height="11" rx="1" fill="white"/>
+  <!-- Bar 2 (2nd place, left, medium) -->
+  <rect x="6"  y="13" width="5" height="8"  rx="1" fill="white" opacity="0.75"/>
+  <!-- Bar 3 (3rd place, right, shortest) -->
+  <rect x="21" y="15" width="5" height="6"  rx="1" fill="white" opacity="0.55"/>
+
+  <!-- Base line under the podium -->
+  <rect x="5.5" y="21.5" width="21" height="1.5" rx="0.75" fill="white"/>
+</svg>
