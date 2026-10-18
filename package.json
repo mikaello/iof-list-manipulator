@@ -21,7 +21,7 @@
     "@types/jsdom": "28.0.3",
     "@types/node": "25.9.9",
     "eslint": "10.11.0",
-    "eslint-plugin-svelte": "3.23.0",
+    "eslint-plugin-svelte": "3.23.1",
     "globals": "17.13.0",
     "jsdom": "29.1.1",
     "svelte": "5.57.1",
